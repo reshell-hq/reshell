@@ -1,0 +1,14 @@
+node_modules
+.next
+.open-next
+.wrangler
+out
+dist
+.DS_Store
+*.pem
+.env*.local
+.dev.vars
+npm-debug.log*
+*.tsbuildinfo
+reshell-radio.local.yaml
+.vercel
