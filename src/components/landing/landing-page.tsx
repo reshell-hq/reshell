@@ -1,9 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ReshellLogo } from "@/components/branding/reshell-logo";
-import { getLandingPageContent } from "@/landing/landing-page";
+import {
+  getLandingPageContent,
+  type LandingPageContent,
+} from "@/landing/landing-page";
 
-export function LandingPage() {
+type LandingPageProps = {
+  content?: LandingPageContent;
+};
+
+export function LandingPage({ content = getLandingPageContent() }: LandingPageProps) {
   const {
     productName,
     headline,
