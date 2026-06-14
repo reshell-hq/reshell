@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getLandingPageContent } from "./landing-page";
 
 describe("landing page", () => {
-  it("introduces Reshell and links to the home station", () => {
+  it("describes Reshell and links to the home station for compose consumers", () => {
     const content = getLandingPageContent();
 
     expect(content.productName).toBe("Reshell");

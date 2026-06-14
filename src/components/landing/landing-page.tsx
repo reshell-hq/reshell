@@ -31,7 +31,7 @@ export function LandingPage({ content = getLandingPageContent() }: LandingPagePr
     earlyAccessNote,
     footerLinks,
     footerLocalTierNote,
-  } = getLandingPageContent();
+  } = content;
 
   return (
     <main className="landing-page">

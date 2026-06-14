@@ -2,7 +2,7 @@
 
 **Make any browser your home.** Reshell is a portable home station for links, projects, and focus workflows — a spatial shell with edge quickmenus, a keyboard-first command bar, and a calm canvas. Your library stays in the browser; export it as YAML when you want to back up or move machines.
 
-Public preview · [github.com/reshell-hq/reshell](https://github.com/reshell-hq/reshell)
+Personal edition · [github.com/reshell-hq/reshell](https://github.com/reshell-hq/reshell) · Product site: [reshell.xyz](https://reshell.xyz)
 
 ## Two surfaces
 
@@ -22,11 +22,10 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), then:
+Open [http://localhost:3000/home](http://localhost:3000/home) (`/` redirects to `/home`), then:
 
-1. Visit **/home** — seeds the starter template into IndexedDB
-2. **Pin /home** — keep the full shell open as a pinned tab
-3. **Bookmark /start** — set it as your new-tab URL for fast launch
+1. **Pin /home** — keep the full shell open as a pinned tab (seeds the starter template into IndexedDB on first visit)
+2. **Bookmark /start** — set it as your new-tab URL for fast launch
 
 ## What you get
 
@@ -84,10 +83,9 @@ npm run preview                  # cf:build + wrangler dev
 
 | Variable | Required | Purpose |
 | -------- | -------- | ------- |
-| `NEXT_PUBLIC_WAITLIST_URL` | No | External waitlist form URL (Tally, Buttondown, etc.) |
 | `NEXT_PUBLIC_SITE_URL` | No | Production URL for Open Graph absolute image links |
 
-When `NEXT_PUBLIC_WAITLIST_URL` is set, the landing page shows a **Join the waitlist** button. When unset, the button is hidden.
+Waitlist and marketing env vars live on the private [reshell.xyz](https://reshell.xyz) deploy — not in this OSS repo.
 
 ## Contributing
 

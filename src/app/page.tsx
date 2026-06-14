@@ -1,8 +1,6 @@
-import { LandingPage } from "@/components/landing/landing-page";
-import { getLandingPageMetadata } from "@/landing/landing-metadata";
+import { redirect } from "next/navigation";
+import { RESHELL_ROUTES } from "@/routing/routes";
 
-export const metadata = getLandingPageMetadata();
-
-export default function LandingRoute() {
-  return <LandingPage />;
+export default function RootPage() {
+  redirect(RESHELL_ROUTES.homeStation);
 }
