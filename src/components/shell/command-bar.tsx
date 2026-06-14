@@ -12,6 +12,7 @@ import {
   type CommandBarResult,
 } from "@/command-bar/command-bar";
 import { commandBarActionRegistry } from "@/editions/command-bar-action-registry";
+import { isDemoMode } from "@/editions/demo-mode";
 import { useResetLibrary } from "@/hooks/use-library";
 import type { Library } from "@/library/types";
 import { cycleActiveWorkspace } from "@/workspace/workspaces";
@@ -147,6 +148,10 @@ export function CommandBar({
     }
 
     if (result.kind === "action") {
+      if (isDemoMode()) {
+        return;
+      }
+
       if (result.actionId === "settings") {
         openSettings();
         setQuery("");

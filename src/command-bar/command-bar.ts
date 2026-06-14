@@ -1,4 +1,5 @@
 import { commandBarActionRegistry } from "@/editions/command-bar-action-registry";
+import { isDemoMode } from "@/editions/demo-mode";
 import { resolveLinkTitle } from "@/link-display/link-display";
 import type { Library } from "@/library/types";
 import { searchLinks, searchWorkspaces } from "@/search/search";
@@ -64,6 +65,10 @@ function registeredActionResults(): CommandBarActionResult[] {
 }
 
 export function buildCommandBarActionResults(query: string): CommandBarActionResult[] {
+  if (isDemoMode()) {
+    return [];
+  }
+
   const actions = [...COMMAND_BAR_ACTIONS, ...registeredActionResults()];
   const actionQuery = query.slice(1).trim().toLowerCase();
   if (!actionQuery) {

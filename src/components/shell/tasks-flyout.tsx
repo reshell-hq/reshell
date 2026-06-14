@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isDemoMode } from "@/editions/demo-mode";
 import {
   TASKS_FLYOUT_ACTIONS_CLASS,
   TASKS_FLYOUT_FORM_CLASS,
@@ -31,6 +32,7 @@ type TasksFlyoutProps = {
 type TasksView = "today" | "backlog";
 
 export function TasksFlyout({ internalTools, onChange }: TasksFlyoutProps) {
+  const demoMode = isDemoMode();
   const [draft, setDraft] = useState("");
   const [estimateDraft, setEstimateDraft] = useState("");
   const [view, setView] = useState<TasksView>("today");
@@ -165,6 +167,7 @@ export function TasksFlyout({ internalTools, onChange }: TasksFlyoutProps) {
                   type="button"
                   className="shell-flyout-more shell-tool-task-action-btn"
                   title="Mark done"
+                  disabled={demoMode}
                   onClick={() => onChange(completeFocusTask(internalTools, task.id))}
                 >
                   Done
@@ -175,33 +178,35 @@ export function TasksFlyout({ internalTools, onChange }: TasksFlyoutProps) {
         </ul>
       </div>
 
-      <form className={TASKS_FLYOUT_FORM_CLASS} onSubmit={handleAdd}>
-        <input
-          type="text"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="Add a focus task…"
-          className="shell-config-input"
-          aria-label="New focus task"
-        />
-        <div className="shell-tool-task-form-row">
-          <label className="shell-tool-task-estimate-field">
-            <span className="shell-tool-split-label">Estimate (min)</span>
-            <input
-              type="number"
-              min={1}
-              value={estimateDraft}
-              onChange={(event) => setEstimateDraft(event.target.value)}
-              placeholder="Optional"
-              className="shell-config-input"
-              aria-label="New focus task estimate"
-            />
-          </label>
-          <button type="submit" className="shell-flyout-more" disabled={!draft.trim()}>
-            Add
-          </button>
-        </div>
-      </form>
+      {demoMode ? null : (
+        <form className={TASKS_FLYOUT_FORM_CLASS} onSubmit={handleAdd}>
+          <input
+            type="text"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Add a focus task…"
+            className="shell-config-input"
+            aria-label="New focus task"
+          />
+          <div className="shell-tool-task-form-row">
+            <label className="shell-tool-task-estimate-field">
+              <span className="shell-tool-split-label">Estimate (min)</span>
+              <input
+                type="number"
+                min={1}
+                value={estimateDraft}
+                onChange={(event) => setEstimateDraft(event.target.value)}
+                placeholder="Optional"
+                className="shell-config-input"
+                aria-label="New focus task estimate"
+              />
+            </label>
+            <button type="submit" className="shell-flyout-more" disabled={!draft.trim()}>
+              Add
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

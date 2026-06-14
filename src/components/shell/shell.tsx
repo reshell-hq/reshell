@@ -9,6 +9,7 @@ import {
   useSaveLibrary,
 } from "@/hooks/use-library";
 import { StaleLibraryError } from "@/library/library";
+import { isDemoMode } from "@/editions/demo-mode";
 import { usePomodoroPhaseAdvance } from "@/hooks/use-pomodoro-phase-advance";
 import type { Library, Workspace } from "@/library/types";
 import { getShellLayout } from "@/shell-frame/layout";
@@ -16,6 +17,7 @@ import { applyTheme } from "@/theme/theme";
 import { reorderEdgeGroupOnRim } from "@/placement/placement";
 import { Launcher } from "./launcher";
 import { ShellConfigDialog } from "./shell-config-dialog";
+import { DemoModeBanner } from "./demo-mode-banner";
 import { ShellWorkspaceSurface } from "./shell-workspace-surface";
 import { FocusRadioPlaybackProvider } from "./focus-radio-playback-context";
 import { LoadingGate } from "@/components/branding/loading-gate";
@@ -68,7 +70,7 @@ export function Shell() {
   }, []);
 
   function handleReorderGroup(groupId: string, targetSlotIndex: number) {
-    if (!library) {
+    if (isDemoMode() || !library) {
       return;
     }
 
@@ -77,6 +79,10 @@ export function Shell() {
   }
 
   if (isError && error instanceof StaleLibraryError) {
+    if (isDemoMode()) {
+      return <LoadingGate label="Loading demo shell…" />;
+    }
+
     return (
       <div className="library-stale-gate">
         <p className="library-stale-gate-copy">{error.message}</p>
@@ -156,6 +162,7 @@ function ShellLoaded({
   return (
     <FocusRadioPlaybackProvider library={library}>
       <div className="relative isolate h-screen w-screen overflow-hidden">
+        {isDemoMode() ? <DemoModeBanner /> : null}
         <ShellWorkspaceSurface
           workspace={activeWorkspace}
           displayName={library.displayName}
@@ -180,7 +187,9 @@ function ShellLoaded({
         />
 
         <Launcher library={library} />
-        <ShellConfigDialog library={library} workspaceName={activeWorkspace.name} />
+        {isDemoMode() ? null : (
+          <ShellConfigDialog library={library} workspaceName={activeWorkspace.name} />
+        )}
       </div>
     </FocusRadioPlaybackProvider>
   );

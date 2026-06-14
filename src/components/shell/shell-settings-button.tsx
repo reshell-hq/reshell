@@ -1,12 +1,17 @@
 "use client";
 
 import { useConfigStore } from "@/store/config-store";
+import { isDemoMode } from "@/editions/demo-mode";
 import { getShellLayout } from "@/shell-frame/layout";
 import { SETTINGS_BUTTON_CLASS } from "./settings-button-layout";
 
 export function ShellSettingsButton() {
   const openSettings = useConfigStore((state) => state.openSettings);
   const layout = getShellLayout();
+
+  if (isDemoMode()) {
+    return null;
+  }
 
   return (
     <button

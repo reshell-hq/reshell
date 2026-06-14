@@ -9,6 +9,7 @@ import {
 import { updateFocusRadioPlayback } from "@/focus-radio/stations";
 import { useMutateLibrary } from "@/hooks/use-library";
 import type { Library } from "@/library/types";
+import { isDemoMode } from "@/editions/demo-mode";
 import { useConfigStore } from "@/store/config-store";
 import { useFocusRadioPlayback } from "./focus-radio-playback-context";
 
@@ -59,15 +60,19 @@ export function ControlCenterMediaTab({ library }: ControlCenterMediaTabProps) {
     return (
       <div className="shell-dashboard-media-empty">
         <p className="shell-dashboard-placeholder">
-          Add focus radio stations in settings to start listening.
+          {isDemoMode()
+            ? "Focus radio stations are configured in your own deployment."
+            : "Add focus radio stations in settings to start listening."}
         </p>
-        <button
-          type="button"
-          className="shell-dashboard-setup-button"
-          onClick={() => openSection("focusRadio")}
-        >
-          Open focus radio settings
-        </button>
+        {isDemoMode() ? null : (
+          <button
+            type="button"
+            className="shell-dashboard-setup-button"
+            onClick={() => openSection("focusRadio")}
+          >
+            Open focus radio settings
+          </button>
+        )}
       </div>
     );
   }

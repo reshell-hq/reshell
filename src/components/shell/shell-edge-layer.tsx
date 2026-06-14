@@ -19,6 +19,7 @@ import { parseInternalToolZoneId, resolveInternalToolHandle } from "@/internal-t
 import type { WorkspaceInternalTools } from "@/internal-tools/types";
 import type { Library } from "@/library/types";
 import { resolveEdgeGroupFlyout, resolveEdgeGroups } from "@/placement/placement";
+import { isDemoMode } from "@/editions/demo-mode";
 import { buildShellZones } from "@/shell-frame/build-zones";
 import {
   computeEdgeHoverBridge,
@@ -460,6 +461,10 @@ export function ShellEdgeLayer({
           onBlur={() => leaveZoneHover("icon")}
           onClick={() => toggleZonePin(zone.id, zonesRef.current)}
           onPointerDown={(event) => {
+            if (isDemoMode()) {
+              return;
+            }
+
             dragRef.current = {
               groupId: zone.id,
               startAxis: event.clientY,

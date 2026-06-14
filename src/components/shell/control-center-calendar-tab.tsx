@@ -11,6 +11,7 @@ import { formatCalendarEventTime } from "@/calendar/format-event-time";
 import { resolveCalendarIcsProxyUrl } from "@/calendar/ics-feed-url";
 import { resolveWorkspaceIcsFeedUrl } from "@/calendar/workspace-ics";
 import type { Library } from "@/library/types";
+import { isDemoMode } from "@/editions/demo-mode";
 import { useConfigStore } from "@/store/config-store";
 
 const REFRESH_MS = 15 * 60 * 1000;
@@ -103,15 +104,19 @@ export function ControlCenterCalendarTab({ library, active }: ControlCenterCalen
     return (
       <div className="shell-dashboard-calendar-empty">
         <p className="shell-dashboard-placeholder">
-          Connect an ICS feed in settings to see upcoming events.
+          {isDemoMode()
+            ? "Calendar feeds are configured in your own deployment."
+            : "Connect an ICS feed in settings to see upcoming events."}
         </p>
-        <button
-          type="button"
-          className="shell-dashboard-setup-button"
-          onClick={() => openSection("workspaces")}
-        >
-          Open calendar settings
-        </button>
+        {isDemoMode() ? null : (
+          <button
+            type="button"
+            className="shell-dashboard-setup-button"
+            onClick={() => openSection("workspaces")}
+          >
+            Open calendar settings
+          </button>
+        )}
       </div>
     );
   }

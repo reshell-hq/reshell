@@ -28,3 +28,10 @@ export {
   resetLibraryStoreFactory,
   type LibraryStoreFactory,
 } from "./library-store-factory";
+export { createDemoLibraryStore } from "./demo-library-store";
+export {
+  enableDemoMode,
+  initializeDemoShell,
+  isDemoMode,
+  resetDemoMode,
+} from "./demo-mode";

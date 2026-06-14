@@ -3134,3 +3134,35 @@ body:has(.landing-page) {
 .landing-page-footer-link:hover {
   color: var(--qs-color-accent);
 }
+
+.shell-demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--qs-color-surface) 92%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--qs-color-text) 12%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.shell-demo-banner-copy {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--qs-color-text) 82%, transparent);
+  text-align: center;
+}
+
+.shell-demo-banner-link {
+  font-weight: 600;
+  color: var(--qs-color-accent);
+  text-decoration: none;
+}
+
+.shell-demo-banner-link:hover {
+  text-decoration: underline;
+}
