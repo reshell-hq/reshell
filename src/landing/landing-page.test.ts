@@ -24,8 +24,9 @@ describe("landing page", () => {
     expect(content.homeStationCta).toBe("Open Reshell");
     expect(content.startPageHref).toBe("/start");
     expect(content.startPageCta).toBe("Open start page");
-    expect(content.earlyAccessNote).toMatch(/local-first by default/i);
-    expect(content.footerLocalTierNote).toMatch(/local-first/i);
+    expect(content.earlyAccessNote).toMatch(/personal edition/i);
+    expect(content.earlyAccessNote).not.toMatch(/preview|beta/i);
+    expect(content.footerLocalTierNote).toMatch(/personal edition/i);
     expect(content.setupLinks.some((link) => link.label.match(/example config/i))).toBe(true);
     expect(content.setupLinks.some((link) => link.label.match(/config authoring skills/i))).toBe(true);
     expect(content.setupLinks.some((link) => link.label.match(/extension/i))).toBe(false);

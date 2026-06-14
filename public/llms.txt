@@ -1,10 +1,10 @@
 # Reshell
 
-> Make any browser your home — a portable home station for links, projects, and workflows. Command-bar search, screen-edge quickshells, and a lightweight start page. Local-first library in IndexedDB; portable v2 YAML snapshots for dotfiles.
+> Make any browser your home — a portable home station for links, projects, and workflows. Command-bar search, screen-edge quickshells, and a lightweight start page. Personal edition: local-first library in IndexedDB; portable v2 YAML snapshots for dotfiles.
 
 ## Product
 
-- Landing: /
+- Marketing + demo: https://reshell.xyz (demo at /demo)
 - Home station (full UI): /home — pin this tab for daily work
 - Start page (command bar): /start — bookmark as your browser new-tab URL
 
@@ -19,7 +19,8 @@
 - App repository: https://github.com/reshell-hq/reshell
 - License and contribution: see repository README
 
-## Not in scope (v1 / preview)
+## Standard+ (not in Personal edition v1)
 
-- Cloud library sync (planned paid tier)
-- Live multi-device sync — use YAML snapshot export/import instead
+- Cloud library sync
+- Focus stats and progression tracking
+- Live multi-device sync — Personal edition uses YAML snapshot export/import instead

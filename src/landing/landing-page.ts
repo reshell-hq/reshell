@@ -87,7 +87,7 @@ export function getLandingPageContent(): LandingPageContent {
     waitlistHref,
     waitlistCta: "Join the waitlist",
     earlyAccessNote:
-      "Public preview. Local-first by default, with portable YAML snapshots for backup and migration. Cloud sync is planned for a future release.",
+      "Personal edition — local-first and open source. Portable YAML snapshots for backup and migration. Cloud sync and focus stats require Standard (coming soon).",
     footerLinks: [
       {
         label: "View source on GitHub",
@@ -99,6 +99,6 @@ export function getLandingPageContent(): LandingPageContent {
       },
     ],
     footerLocalTierNote:
-      "Local-first. Your library stays in this browser until you export a snapshot.",
+      "Personal edition · Your library stays in this browser until you export a snapshot.",
   };
 }

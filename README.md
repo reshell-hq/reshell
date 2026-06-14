@@ -2,7 +2,9 @@
 
 **Make any browser your home.** Reshell is a portable home station for links, projects, and focus workflows — a spatial shell with edge quickmenus, a keyboard-first command bar, and a calm canvas. Your library stays in the browser; export it as YAML when you want to back up or move machines.
 
-Personal edition · [github.com/reshell-hq/reshell](https://github.com/reshell-hq/reshell) · Product site: [reshell.xyz](https://reshell.xyz)
+**Personal edition** is generally available (v1). Self-host this repo, or try the read-only interactive demo at [reshell.xyz/demo](https://reshell.xyz/demo). Marketing and the Standard waitlist live at [reshell.xyz](https://reshell.xyz).
+
+[github.com/reshell-hq/reshell](https://github.com/reshell-hq/reshell)
 
 ## Two surfaces
 
@@ -48,9 +50,9 @@ Your **library** — workspaces, link catalog, placements, themes, shortcuts, an
 - **Example config** — fork [reshell-hq/reshell-config](https://github.com/reshell-hq/reshell-config) for a starter `library.yaml` and agent skills to author your own
 - **Reset** — `:reset` (requires confirmation); re-seeds the starter template
 
-Snapshots reference theme background images by URL, not embedded bytes. Import replaces the local library. Cross-machine restore is manual via snapshot today — **cloud library sync** is planned for a future paid edition.
+Snapshots reference theme background images by URL, not embedded bytes. Import replaces the local library. Cross-machine restore is manual via snapshot today — **cloud library sync** and **focus stats** require **Standard** (coming soon; join the waitlist at [reshell.xyz](https://reshell.xyz)).
 
-> **Upgrading from the Yeti preview:** the IndexedDB store was renamed `yeti` → `reshell`, so Reshell starts from the starter template on first load. Export a `yeti-snapshot.yaml` from your old library beforehand and re-import it, or just re-seed — the old `yeti` store is left untouched and can be cleared from your browser's devtools.
+> **Upgrading from Yeti:** the IndexedDB store was renamed `yeti` → `reshell`, so Reshell starts from the starter template on first load. Export a `yeti-snapshot.yaml` from your old library beforehand and re-import it, or just re-seed — the old `yeti` store is left untouched and can be cleared from your browser's devtools.
 
 Machine-readable summary for assistants and crawlers: [`/llms.txt`](https://github.com/reshell-hq/reshell/blob/main/public/llms.txt) when deployed, or [`public/llms.txt`](./public/llms.txt) in this repo.
 
