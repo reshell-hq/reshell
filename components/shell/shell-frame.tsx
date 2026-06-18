@@ -19,6 +19,8 @@ export function ShellFrame() {
       className="pointer-events-none fixed inset-0 z-50 h-full w-full text-foreground"
       viewBox={SHELL_VIEWBOX}
       preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
     >
       <ShellOutline pathRef={visiblePathRef} bounds={bounds} />
     </svg>
