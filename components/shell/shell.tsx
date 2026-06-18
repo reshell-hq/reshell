@@ -16,8 +16,8 @@ type ShellProps = {
 };
 
 function ShellOverlayMount() {
-  const { overlayRef } = useShell();
-  return <ShellOverlay overlayRef={overlayRef} />;
+  const { setOverlayElement } = useShell();
+  return <ShellOverlay onMount={setOverlayElement} />;
 }
 
 function ShellRoot({ children, bounds = SHELL_BOUNDS }: ShellProps) {

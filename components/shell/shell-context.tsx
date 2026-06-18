@@ -37,7 +37,8 @@ type ShellContextValue = {
   slots: ReadonlyMap<string, SlotRegistration>;
   slotContentSizes: ReadonlyMap<string, Size>;
   shellSvgRef: RefObject<SVGSVGElement | null>;
-  overlayRef: RefObject<HTMLDivElement | null>;
+  overlayElement: HTMLDivElement | null;
+  setOverlayElement: (element: HTMLDivElement | null) => void;
   activate: (id: string) => void;
   deactivate: () => void;
   registerSlot: (slot: SlotRegistration) => void;
@@ -93,7 +94,8 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
     Map<string, Size>
   >(() => new Map());
   const shellSvgRef = useRef<SVGSVGElement | null>(null);
-  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const [overlayElement, setOverlayElement] =
+    useState<HTMLDivElement | null>(null);
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
     setSlots((previous) => new Map(previous).set(slot.id, slot));
@@ -190,7 +192,8 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
       slots,
       slotContentSizes,
       shellSvgRef,
-      overlayRef,
+      overlayElement,
+      setOverlayElement,
       activate,
       deactivate,
       registerSlot,
@@ -207,6 +210,7 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
       animatedNotch,
       slots,
       slotContentSizes,
+      overlayElement,
       activate,
       deactivate,
       registerSlot,

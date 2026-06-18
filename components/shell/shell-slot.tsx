@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { anchorHitZoneStyle, notchContentStyle } from "@/lib/shell/coordinates";
+import { anchorHitZoneStyle } from "@/lib/shell/coordinates";
 import { useShell, useShellEdge } from "./shell-context";
+import { ShellSlotPortal } from "./shell-slot-portal";
 import { useSlotMeasure } from "./use-slot-measure";
 
 export type ShellSlotProps = {
@@ -27,11 +28,8 @@ export function ShellSlot({
 }: ShellSlotProps) {
   const { side, siblingCount } = useShellEdge();
   const {
-    bounds,
     activate,
-    deactivate,
     activeSlotId,
-    animatedNotch,
     registerSlot,
     unregisterSlot,
     getAnchor,
@@ -66,37 +64,6 @@ export function ShellSlot({
     return anchorHitZoneStyle(anchor, minExtent);
   }, [anchor, minExtent, isActive]);
 
-  const contentStyle = useMemo(() => {
-    if (!isActive || !anchor || !animatedNotch) {
-      return null;
-    }
-
-    if (
-      animatedNotch.edge !== anchor.edge ||
-      Math.abs(animatedNotch.center - anchor.center) >= 0.01
-    ) {
-      return null;
-    }
-
-    if (animatedNotch.depth <= 0) {
-      return null;
-    }
-
-    return notchContentStyle(bounds, animatedNotch);
-  }, [isActive, anchor, animatedNotch, bounds]);
-
-  function handlePointerLeave(event: React.PointerEvent<HTMLDivElement>) {
-    const relatedTarget = event.relatedTarget;
-    if (
-      relatedTarget instanceof Element &&
-      relatedTarget.closest(`[data-shell-slot="${id}"]`)
-    ) {
-      return;
-    }
-
-    deactivate();
-  }
-
   return (
     <>
       {children ? (
@@ -116,16 +83,7 @@ export function ShellSlot({
           onPointerEnter={() => activate(id)}
         />
       ) : null}
-      {children && contentStyle ? (
-        <div
-          data-shell-slot={id}
-          className="z-[55] box-border overflow-hidden"
-          style={contentStyle}
-          onPointerLeave={handlePointerLeave}
-        >
-          {children}
-        </div>
-      ) : null}
+      {children ? <ShellSlotPortal slotId={id}>{children}</ShellSlotPortal> : null}
     </>
   );
 }
