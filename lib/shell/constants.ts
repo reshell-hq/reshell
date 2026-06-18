@@ -9,11 +9,6 @@ export const SHELL_BOUNDS: ShellBounds = {
   ry: 3,
 };
 
-export const NOTCH_LIMITS = {
-  maxDepth: 14,
-  maxHalfExtent: 10,
-} as const;
-
 /** Corner radius (viewBox units) applied to the notch cut for smooth corners. */
 export const NOTCH_CORNER_RADIUS = 1.5;
 
@@ -26,7 +21,6 @@ export const MIN_NOTCH_SIZE = {
 export const NOTCH_ANIMATION = {
   smoothing: 0.18,
   settleThreshold: 0.05,
-  hitStrokeWidth: 20,
   visibleStrokeWidth: 0.8,
 } as const;
 

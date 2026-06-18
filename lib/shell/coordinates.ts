@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
-import type { NotchRect } from "./notch-rect";
-import type { NotchSpec, Point, ShellBounds, SlotAnchor, SlotExtent } from "./types";
+import type { NotchSpec, ShellBounds, SlotAnchor, SlotExtent } from "./types";
 
 const VIEWBOX_SIZE = { width: 100, height: 100 };
 
@@ -56,16 +55,6 @@ export function anchorHitZoneStyle(
   }
 }
 
-export function notchRectToStyle(rect: NotchRect): CSSProperties {
-  return {
-    position: "fixed",
-    left: toPercentX(rect.x),
-    top: toPercentY(rect.y),
-    width: toPercentX(rect.width),
-    height: toPercentY(rect.height),
-  };
-}
-
 /**
  * Positions slot content inside the notch cavity, pinning the outer side to the
  * screen edge so the pocket reads as open (no floating border at the shell
@@ -112,22 +101,4 @@ export function notchContentStyle(
         left: toPercentX(bounds.right - depth),
       };
   }
-}
-
-export function clientToViewBox(
-  svg: SVGSVGElement,
-  clientX: number,
-  clientY: number,
-): Point {
-  const point = svg.createSVGPoint();
-  point.x = clientX;
-  point.y = clientY;
-
-  const ctm = svg.getScreenCTM();
-  if (!ctm) {
-    return { x: clientX, y: clientY };
-  }
-
-  const transformed = point.matrixTransform(ctm.inverse());
-  return { x: transformed.x, y: transformed.y };
 }
