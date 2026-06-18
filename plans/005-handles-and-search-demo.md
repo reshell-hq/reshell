@@ -248,13 +248,31 @@ Append section:
 
 ## Done criteria
 
-- [ ] `Shell.Slot` accepts optional `handle` rendered outside shell
-- [ ] Bottom search demo with async results grows notch upward
-- [ ] Hover handle → portal → results does not flicker closed
-- [ ] Metadata updated to reshell
-- [ ] `AGENTS.md` documents shell architecture
-- [ ] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run lint` exit 0
-- [ ] `plans/README.md` row 005 → DONE
+- [x] `Shell.Slot` accepts optional `handle` rendered outside shell
+- [x] Bottom search demo with async results grows notch upward
+- [x] Hover handle → portal → results does not flicker closed
+- [x] Metadata updated to reshell
+- [x] `AGENTS.md` documents shell architecture
+- [x] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run lint` exit 0
+- [x] `plans/README.md` row 005 → DONE
+
+## Implementation notes (deviation from snippets)
+
+- `handleStyle` follows the codebase's percentage coordinate space (viewBox is
+  `100×100` with `preserveAspectRatio="none"`) instead of a `getScreenCTM` pixel
+  matrix — consistent with plan 004. It takes `(bounds, anchor, offsetPx)`; no
+  `svgElement` arg is needed. `HANDLE_OFFSET_PX` lives in `constants.ts`.
+- Hover persistence uses the shared `data-shell-slot` marker across the handle,
+  the activation zone, and the portal (relatedTarget check on pointer-leave), so
+  travel between handle and revealed content keeps the slot open.
+- `SearchSlot` runs the search from the input change handler with a request
+  counter (not a `useEffect` + cancelled flag) to satisfy the
+  `react-hooks/set-state-in-effect` lint rule while still dropping stale
+  responses on rapid typing.
+- Reduced-motion snap was already wired in `useShellAnimation` (plans 002/003).
+- The decorative frame SVG is `aria-hidden` (it carries no semantic content;
+  live content renders in the overlay portal) — the plan's "remove aria-hidden"
+  item did not apply since it was never present.
 
 ## STOP conditions
 
