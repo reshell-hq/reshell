@@ -2,8 +2,9 @@
 
 import { SHELL_BOUNDS } from "@/lib/shell/constants";
 import type { ShellBounds } from "@/lib/shell/types";
-import { ShellProvider } from "./shell-context";
+import { ShellProvider, useShell } from "./shell-context";
 import { ShellFrame } from "./shell-frame";
+import { ShellOverlay } from "./shell-overlay";
 import { ShellEdge } from "./shell-edge";
 import { ShellSlot } from "./shell-slot";
 import { ShellContent } from "./shell-content";
@@ -14,12 +15,18 @@ type ShellProps = {
   bounds?: ShellBounds;
 };
 
+function ShellOverlayMount() {
+  const { overlayRef } = useShell();
+  return <ShellOverlay overlayRef={overlayRef} />;
+}
+
 function ShellRoot({ children, bounds = SHELL_BOUNDS }: ShellProps) {
   return (
     <ShellProvider bounds={bounds}>
       <div className="relative flex min-h-full flex-1 flex-col">
         <ShellFrame />
         {children}
+        <ShellOverlayMount />
       </div>
     </ShellProvider>
   );

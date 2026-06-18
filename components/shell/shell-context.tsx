@@ -37,6 +37,7 @@ type ShellContextValue = {
   slots: ReadonlyMap<string, SlotRegistration>;
   slotContentSizes: ReadonlyMap<string, Size>;
   shellSvgRef: RefObject<SVGSVGElement | null>;
+  overlayRef: RefObject<HTMLDivElement | null>;
   activate: (id: string) => void;
   deactivate: () => void;
   registerSlot: (slot: SlotRegistration) => void;
@@ -92,6 +93,7 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
     Map<string, Size>
   >(() => new Map());
   const shellSvgRef = useRef<SVGSVGElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
     setSlots((previous) => new Map(previous).set(slot.id, slot));
@@ -188,6 +190,7 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
       slots,
       slotContentSizes,
       shellSvgRef,
+      overlayRef,
       activate,
       deactivate,
       registerSlot,
