@@ -1,5 +1,3 @@
-export type Point = { x: number; y: number };
-
 export type ShellBounds = {
   left: number;
   top: number;
@@ -11,16 +9,21 @@ export type ShellBounds = {
 
 export type ShellEdge = "top" | "right" | "bottom" | "left";
 
-export type NotchPlacement =
-  | { edge: "top" | "bottom"; center: number }
-  | { edge: "left" | "right"; center: number };
+export type SlotAnchor = {
+  edge: ShellEdge;
+  center: number;
+};
 
-export type NotchSize = {
+export type SlotExtent = {
   depth: number;
   halfExtent: number;
 };
 
-export type NotchState = {
-  placement: NotchPlacement | null;
-  size: NotchSize;
+export type NotchSpec = SlotAnchor & SlotExtent;
+
+export type SlotRegistration = {
+  id: string;
+  edge: ShellEdge;
+  anchorIndex: number;
+  siblingCount: number;
 };

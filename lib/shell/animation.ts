@@ -1,82 +1,72 @@
-import { NOTCH_ANIMATION, NOTCH_LIMITS } from "./constants";
+import { NOTCH_ANIMATION } from "./constants";
 import { isSettled, lerp } from "./easing";
-import type { NotchPlacement, NotchSize } from "./types";
+import type { NotchSpec, SlotAnchor, SlotExtent } from "./types";
 
-export type NotchAnimationTarget = {
-  placement: NotchPlacement | null;
-  size: NotchSize;
+type AnimationState = {
+  anchor: SlotAnchor | null;
+  extent: SlotExtent;
 };
 
-export type NotchAnimationSnapshot = NotchAnimationTarget & {
-  isHovering: boolean;
-};
-
-function openTarget(placement: NotchPlacement): NotchAnimationTarget {
+function closedState(anchor: SlotAnchor | null = null): AnimationState {
   return {
-    placement,
-    size: {
-      depth: NOTCH_LIMITS.maxDepth,
-      halfExtent: NOTCH_LIMITS.maxHalfExtent,
-    },
+    anchor,
+    extent: { depth: 0, halfExtent: 0 },
   };
 }
 
-function closedTarget(
-  placement: NotchPlacement | null,
-): NotchAnimationTarget {
-  return {
-    placement,
-    size: { depth: 0, halfExtent: 0 },
-  };
+function toNotchSpec(state: AnimationState): NotchSpec | null {
+  if (!state.anchor) {
+    return null;
+  }
+
+  if (state.extent.depth === 0 && state.extent.halfExtent === 0) {
+    return null;
+  }
+
+  return { ...state.anchor, ...state.extent };
 }
 
-export function createNotchAnimationController() {
-  let snapshot: NotchAnimationSnapshot = {
-    isHovering: false,
-    placement: null,
-    size: { depth: 0, halfExtent: 0 },
-  };
-
-  let target: NotchAnimationTarget = closedTarget(null);
+export function createShellNotchAnimationController() {
+  let current: AnimationState = closedState();
+  let target: AnimationState = closedState();
   let frameId = 0;
-  let onFrame: ((snapshot: NotchAnimationSnapshot) => void) | null = null;
+  let onFrame: ((notch: NotchSpec | null) => void) | null = null;
 
   const { smoothing, settleThreshold } = NOTCH_ANIMATION;
 
   function emitFrame() {
-    onFrame?.(snapshot);
+    onFrame?.(toNotchSpec(current));
   }
 
   function step() {
-    snapshot.size = {
-      depth: lerp(snapshot.size.depth, target.size.depth, smoothing),
+    current.extent = {
+      depth: lerp(current.extent.depth, target.extent.depth, smoothing),
       halfExtent: lerp(
-        snapshot.size.halfExtent,
-        target.size.halfExtent,
+        current.extent.halfExtent,
+        target.extent.halfExtent,
         smoothing,
       ),
     };
 
-    if (target.placement) {
-      snapshot.placement = target.placement;
-    }
-
     const depthSettled = isSettled(
-      snapshot.size.depth,
-      target.size.depth,
+      current.extent.depth,
+      target.extent.depth,
       settleThreshold,
     );
     const extentSettled = isSettled(
-      snapshot.size.halfExtent,
-      target.size.halfExtent,
+      current.extent.halfExtent,
+      target.extent.halfExtent,
       settleThreshold,
     );
 
     if (depthSettled && extentSettled) {
-      snapshot.size = { ...target.size };
+      current.extent = { ...target.extent };
 
-      if (!snapshot.isHovering && target.size.depth === 0) {
-        snapshot.placement = null;
+      if (target.extent.depth === 0) {
+        current.anchor = target.anchor;
+        if (current.extent.depth === 0) {
+          current.anchor = null;
+        }
       }
 
       frameId = 0;
@@ -95,51 +85,41 @@ export function createNotchAnimationController() {
   }
 
   return {
-    getSnapshot: () => snapshot,
+    getAnimatedNotch(): NotchSpec | null {
+      return toNotchSpec(current);
+    },
 
-    setFrameListener(listener: (snapshot: NotchAnimationSnapshot) => void) {
+    setFrameListener(listener: (notch: NotchSpec | null) => void) {
       onFrame = listener;
     },
 
-    hover(placement: NotchPlacement) {
-      snapshot.isHovering = true;
-      target = openTarget(placement);
-      snapshot.placement = placement;
+    setTarget(notch: NotchSpec | null) {
+      if (notch) {
+        target = {
+          anchor: { edge: notch.edge, center: notch.center },
+          extent: { depth: notch.depth, halfExtent: notch.halfExtent },
+        };
+        current.anchor = { edge: notch.edge, center: notch.center };
+        ensureLoopRunning();
+        return;
+      }
+
+      target = closedState(current.anchor);
       ensureLoopRunning();
     },
 
-    move(placement: NotchPlacement) {
-      target.placement = placement;
-      snapshot.placement = placement;
-      ensureLoopRunning();
-    },
+    snapTo(notch: NotchSpec | null) {
+      if (notch) {
+        current = {
+          anchor: { edge: notch.edge, center: notch.center },
+          extent: { depth: notch.depth, halfExtent: notch.halfExtent },
+        };
+        target = { ...current };
+      } else {
+        current = closedState();
+        target = closedState();
+      }
 
-    leave() {
-      snapshot.isHovering = false;
-      target = closedTarget(snapshot.placement);
-      ensureLoopRunning();
-    },
-
-    snapOpen(placement: NotchPlacement) {
-      snapshot = {
-        isHovering: true,
-        placement,
-        size: {
-          depth: NOTCH_LIMITS.maxDepth,
-          halfExtent: NOTCH_LIMITS.maxHalfExtent,
-        },
-      };
-      target = openTarget(placement);
-      emitFrame();
-    },
-
-    snapClosed() {
-      snapshot = {
-        isHovering: false,
-        placement: null,
-        size: { depth: 0, halfExtent: 0 },
-      };
-      target = closedTarget(null);
       emitFrame();
     },
 
@@ -153,6 +133,6 @@ export function createNotchAnimationController() {
   };
 }
 
-export type NotchAnimationController = ReturnType<
-  typeof createNotchAnimationController
+export type ShellNotchAnimationController = ReturnType<
+  typeof createShellNotchAnimationController
 >;
