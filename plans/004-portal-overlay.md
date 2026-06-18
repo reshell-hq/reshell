@@ -184,12 +184,32 @@ Visible portal duplicates children — acceptable for search UI; optimize later 
 
 ## Done criteria
 
-- [ ] Active slot content renders via `createPortal` into shell overlay
-- [ ] Measurer remains hidden; portal shows visible copy
-- [ ] Bottom-edge content uses `transformOrigin: bottom center`
-- [ ] Notch and portal resize together when content grows
-- [ ] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run lint` exit 0
-- [ ] `plans/README.md` row 004 → DONE
+- [x] Active slot content renders via `createPortal` into shell overlay
+- [x] Measurer remains hidden; portal shows visible copy
+- [x] Bottom-edge content uses `transformOrigin: bottom center`
+- [x] Notch and portal resize together when content grows
+- [x] `npm test`, `npx tsc --noEmit`, `npm run build`, `npm run lint` exit 0
+- [x] `plans/README.md` row 004 → DONE
+
+## Implementation notes (deviation from snippets)
+
+The frame SVG uses a `100×100` viewBox with `preserveAspectRatio="none"`, so
+viewBox units map 1:1 to CSS percentages of the viewport. Positioning therefore
+reuses the existing percentage-based `notchContentStyle` (lib/shell/coordinates)
+rather than a pixel `notchRectToCss`/`getScreenCTM` matrix — there is no
+`notch-rect.ts` in this codebase. `lib/shell/viewbox-to-css.ts` provides the new
+piece this plan introduces: `transformOriginForEdge` for the reveal anchor.
+
+`animatedNotch` was already exposed in context (plan 003), so Step 2 was already
+satisfied. The portal target is tracked as context state via a callback ref
+(`overlayElement`/`setOverlayElement`) instead of reading `ref.current` during
+render — this satisfies the lint rule and guarantees the portal mounts as soon
+as the overlay exists (resolves the "target not ready on first activate" risk).
+
+The reveal is driven by the growing clip rect (the cavity itself grows with the
+animated notch); content pinned to the docking edge reveals as it opens, with
+`transformOrigin` set per edge. No per-axis scale is applied, avoiding
+`preserveAspectRatio="none"` distortion.
 
 ## STOP conditions
 
