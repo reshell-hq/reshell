@@ -24,3 +24,22 @@ export type NotchState = {
   placement: NotchPlacement | null;
   size: NotchSize;
 };
+
+export type SlotAnchor = {
+  edge: ShellEdge;
+  center: number;
+};
+
+export type SlotExtent = {
+  depth: number;
+  halfExtent: number;
+};
+
+export type NotchSpec = SlotAnchor & SlotExtent;
+
+export type SlotRegistration = {
+  id: string;
+  edge: ShellEdge;
+  anchorIndex: number;
+  siblingCount: number;
+};
