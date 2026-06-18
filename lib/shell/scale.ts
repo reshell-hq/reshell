@@ -1,18 +1,10 @@
-export type PixelSize = {
-  width: number;
-  height: number;
-};
-
-export type ViewBoxSize = {
-  width: number;
-  height: number;
-};
+import type { Size } from "./types";
 
 export function pixelsToViewBoxWithScreen(
-  pixels: PixelSize,
-  screen: PixelSize,
-  viewBox: ViewBoxSize = { width: 100, height: 100 },
-): ViewBoxSize {
+  pixels: Size,
+  screen: Size,
+  viewBox: Size = { width: 100, height: 100 },
+): Size {
   if (screen.width === 0 || screen.height === 0) {
     return { width: 0, height: 0 };
   }
@@ -24,9 +16,9 @@ export function pixelsToViewBoxWithScreen(
 }
 
 export function pixelsToViewBox(
-  pixels: PixelSize,
+  pixels: Size,
   svgElement: SVGSVGElement,
-): ViewBoxSize {
+): Size {
   const rect = svgElement.getBoundingClientRect();
   const viewBox = svgElement.viewBox.baseVal;
 

@@ -1,14 +1,11 @@
 import type { CSSProperties } from "react";
 import type { NotchSpec, ShellBounds, SlotAnchor, SlotExtent } from "./types";
 
-const VIEWBOX_SIZE = { width: 100, height: 100 };
+const VIEWBOX_SIZE = 100;
 
-function toPercentX(value: number): string {
-  return `${(value / VIEWBOX_SIZE.width) * 100}%`;
-}
-
-function toPercentY(value: number): string {
-  return `${(value / VIEWBOX_SIZE.height) * 100}%`;
+/** ViewBox units map 1:1 to percentages since the viewBox is 100×100. */
+function pct(value: number): string {
+  return `${value}%`;
 }
 
 export function anchorHitZoneStyle(
@@ -23,34 +20,34 @@ export function anchorHitZoneStyle(
     case "bottom":
       return {
         position: "fixed",
-        left: toPercentX(center - halfExtent),
-        width: toPercentX(span),
+        left: pct(center - halfExtent),
+        width: pct(span),
         bottom: 0,
-        height: toPercentY(depth),
+        height: pct(depth),
       };
     case "top":
       return {
         position: "fixed",
-        left: toPercentX(center - halfExtent),
-        width: toPercentX(span),
+        left: pct(center - halfExtent),
+        width: pct(span),
         top: 0,
-        height: toPercentY(depth),
+        height: pct(depth),
       };
     case "left":
       return {
         position: "fixed",
-        top: toPercentY(center - halfExtent),
-        height: toPercentY(span),
+        top: pct(center - halfExtent),
+        height: pct(span),
         left: 0,
-        width: toPercentX(depth),
+        width: pct(depth),
       };
     case "right":
       return {
         position: "fixed",
-        top: toPercentY(center - halfExtent),
-        height: toPercentY(span),
+        top: pct(center - halfExtent),
+        height: pct(span),
         right: 0,
-        width: toPercentX(depth),
+        width: pct(depth),
       };
   }
 }
@@ -71,34 +68,34 @@ export function notchContentStyle(
     case "bottom":
       return {
         position: "fixed",
-        left: toPercentX(center - halfExtent),
-        width: toPercentX(span),
-        top: toPercentY(bounds.bottom - depth),
+        left: pct(center - halfExtent),
+        width: pct(span),
+        top: pct(bounds.bottom - depth),
         bottom: 0,
       };
     case "top":
       return {
         position: "fixed",
-        left: toPercentX(center - halfExtent),
-        width: toPercentX(span),
+        left: pct(center - halfExtent),
+        width: pct(span),
         top: 0,
-        bottom: toPercentY(VIEWBOX_SIZE.height - (bounds.top + depth)),
+        bottom: pct(VIEWBOX_SIZE - (bounds.top + depth)),
       };
     case "left":
       return {
         position: "fixed",
-        top: toPercentY(center - halfExtent),
-        height: toPercentY(span),
+        top: pct(center - halfExtent),
+        height: pct(span),
         left: 0,
-        right: toPercentX(VIEWBOX_SIZE.width - (bounds.left + depth)),
+        right: pct(VIEWBOX_SIZE - (bounds.left + depth)),
       };
     case "right":
       return {
         position: "fixed",
-        top: toPercentY(center - halfExtent),
-        height: toPercentY(span),
+        top: pct(center - halfExtent),
+        height: pct(span),
         right: 0,
-        left: toPercentX(bounds.right - depth),
+        left: pct(bounds.right - depth),
       };
   }
 }

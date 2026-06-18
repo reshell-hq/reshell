@@ -1,14 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
-export type MeasuredSize = {
-  width: number;
-  height: number;
-};
+import type { Size } from "@/lib/shell/types";
 
 export function useSlotMeasure(
-  onResize: (size: MeasuredSize) => void,
+  onResize: (size: Size) => void,
 ): React.RefObject<HTMLDivElement | null> {
   const ref = useRef<HTMLDivElement>(null);
   const onResizeRef = useRef(onResize);

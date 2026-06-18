@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { createShellNotchAnimationController } from "@/lib/shell/animation";
-import { buildShellPath } from "@/lib/shell/path";
+import { buildShellPath } from "@/lib/shell/notch";
 import { useShell } from "@/components/shell/shell-context";
 
 export function useShellAnimation(): {

@@ -1,13 +1,5 @@
 import { anchorPositions } from "./anchors";
-import type {
-  NotchSpec,
-  ShellBounds,
-  SlotAnchor,
-  SlotExtent,
-  SlotRegistration,
-} from "./types";
-
-export type { SlotRegistration };
+import type { ShellBounds, SlotAnchor, SlotRegistration } from "./types";
 
 export function getSlotAnchor(
   bounds: ShellBounds,
@@ -18,22 +10,4 @@ export function getSlotAnchor(
     edge: slot.edge,
     center: positions[slot.anchorIndex] ?? positions[0],
   };
-}
-
-export function resolveActiveNotch(
-  activeSlotId: string | null,
-  slots: ReadonlyMap<string, SlotRegistration>,
-  bounds: ShellBounds,
-  extent: SlotExtent,
-): NotchSpec | null {
-  if (!activeSlotId) {
-    return null;
-  }
-
-  const slot = slots.get(activeSlotId);
-  if (!slot) {
-    return null;
-  }
-
-  return { ...getSlotAnchor(bounds, slot), ...extent };
 }

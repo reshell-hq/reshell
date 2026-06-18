@@ -5,7 +5,7 @@ import {
   NOTCH_ANIMATION,
   SHELL_VIEWBOX,
 } from "@/lib/shell/constants";
-import { buildRoundedRectPath } from "@/lib/shell/path";
+import { buildRoundedRectPath } from "@/lib/shell/notch";
 import { useShellAnimation } from "@/hooks/use-shell-animation";
 import { useShell } from "./shell-context";
 

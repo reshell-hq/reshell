@@ -1,10 +1,6 @@
 import { NOTCH_CORNER_RADIUS } from "./constants";
 import type { NotchSpec, ShellBounds } from "./types";
 
-function joinCommands(commands: string[]): string {
-  return commands.join(" ");
-}
-
 function notchCornerRadius(depth: number, halfExtent: number): number {
   return Math.min(NOTCH_CORNER_RADIUS, halfExtent, depth / 2);
 }
@@ -12,7 +8,7 @@ function notchCornerRadius(depth: number, halfExtent: number): number {
 export function buildRoundedRectPath(bounds: ShellBounds): string {
   const { left, top, right, bottom, rx, ry } = bounds;
 
-  return joinCommands([
+  return [
     `M ${left + rx} ${top}`,
     `H ${right - rx}`,
     `Q ${right} ${top} ${right} ${top + ry}`,
@@ -23,7 +19,7 @@ export function buildRoundedRectPath(bounds: ShellBounds): string {
     `V ${top + ry}`,
     `Q ${left} ${top} ${left + rx} ${top}`,
     "Z",
-  ]);
+  ].join(" ");
 }
 
 function hasVisibleNotch(notch: NotchSpec | null): notch is NotchSpec {
@@ -40,7 +36,7 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
       const notchTop = center - halfExtent;
       const notchBottom = center + halfExtent;
       const wall = left + depth;
-      return joinCommands([
+      return [
         `M ${left + rx} ${top}`,
         `H ${right - rx}`,
         `Q ${right} ${top} ${right} ${top + ry}`,
@@ -59,13 +55,13 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `V ${top + ry}`,
         `Q ${left} ${top} ${left + rx} ${top}`,
         "Z",
-      ]);
+      ].join(" ");
     }
     case "right": {
       const notchTop = center - halfExtent;
       const notchBottom = center + halfExtent;
       const wall = right - depth;
-      return joinCommands([
+      return [
         `M ${left + rx} ${top}`,
         `H ${right - rx}`,
         `Q ${right} ${top} ${right} ${top + ry}`,
@@ -84,13 +80,13 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `V ${top + ry}`,
         `Q ${left} ${top} ${left + rx} ${top}`,
         "Z",
-      ]);
+      ].join(" ");
     }
     case "top": {
       const notchLeft = center - halfExtent;
       const notchRight = center + halfExtent;
       const wall = top + depth;
-      return joinCommands([
+      return [
         `M ${left + rx} ${top}`,
         `H ${notchLeft - nr}`,
         `Q ${notchLeft} ${top} ${notchLeft} ${top + nr}`,
@@ -109,13 +105,13 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `V ${top + ry}`,
         `Q ${left} ${top} ${left + rx} ${top}`,
         "Z",
-      ]);
+      ].join(" ");
     }
     case "bottom": {
       const notchLeft = center - halfExtent;
       const notchRight = center + halfExtent;
       const wall = bottom - depth;
-      return joinCommands([
+      return [
         `M ${left + rx} ${top}`,
         `H ${right - rx}`,
         `Q ${right} ${top} ${right} ${top + ry}`,
@@ -134,7 +130,7 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `V ${top + ry}`,
         `Q ${left} ${top} ${left + rx} ${top}`,
         "Z",
-      ]);
+      ].join(" ");
     }
   }
 }

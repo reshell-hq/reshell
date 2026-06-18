@@ -1,13 +1,8 @@
-import type { ShellEdge, SlotExtent } from "./types";
-
-export type ContentSize = {
-  width: number;
-  height: number;
-};
+import type { ShellEdge, Size, SlotExtent } from "./types";
 
 export function contentSizeToExtent(
   edge: ShellEdge,
-  size: ContentSize,
+  size: Size,
 ): SlotExtent {
   switch (edge) {
     case "bottom":

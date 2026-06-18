@@ -24,22 +24,18 @@ import type {
   NotchSpec,
   ShellBounds,
   ShellEdge,
+  Size,
   SlotAnchor,
   SlotExtent,
+  SlotRegistration,
 } from "@/lib/shell/types";
-import type { SlotRegistration } from "@/lib/shell/types";
-
-export type ContentSize = {
-  width: number;
-  height: number;
-};
 
 type ShellContextValue = {
   bounds: ShellBounds;
   activeSlotId: string | null;
   animatedNotch: NotchSpec | null;
   slots: ReadonlyMap<string, SlotRegistration>;
-  slotContentSizes: ReadonlyMap<string, ContentSize>;
+  slotContentSizes: ReadonlyMap<string, Size>;
   shellSvgRef: RefObject<SVGSVGElement | null>;
   activate: (id: string) => void;
   deactivate: () => void;
@@ -48,7 +44,7 @@ type ShellContextValue = {
   getAnchor: (id: string) => SlotAnchor | null;
   getSlotExtent: (id: string) => SlotExtent | null;
   getMinSlotExtent: (id: string) => SlotExtent | null;
-  updateSlotContentSize: (id: string, size: ContentSize) => void;
+  updateSlotContentSize: (id: string, size: Size) => void;
   setAnimatedNotch: Dispatch<SetStateAction<NotchSpec | null>>;
 };
 
@@ -60,9 +56,9 @@ type ShellProviderProps = {
 };
 
 function pixelSizeToViewBox(
-  pixelSize: ContentSize,
+  pixelSize: Size,
   svg: SVGSVGElement | null,
-): ContentSize {
+): Size {
   if (svg) {
     return pixelsToViewBox(pixelSize, svg);
   }
@@ -76,7 +72,7 @@ function pixelSizeToViewBox(
 function extentFromPixelSize(
   bounds: ShellBounds,
   slot: SlotRegistration,
-  pixelSize: ContentSize,
+  pixelSize: Size,
   svg: SVGSVGElement | null,
 ): SlotExtent {
   const anchor = getSlotAnchor(bounds, slot);
@@ -93,7 +89,7 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
     () => new Map(),
   );
   const [slotContentSizes, setSlotContentSizes] = useState<
-    Map<string, ContentSize>
+    Map<string, Size>
   >(() => new Map());
   const shellSvgRef = useRef<SVGSVGElement | null>(null);
 
@@ -115,7 +111,7 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
     setActiveSlotId((current) => (current === id ? null : current));
   }, []);
 
-  const updateSlotContentSize = useCallback((id: string, size: ContentSize) => {
+  const updateSlotContentSize = useCallback((id: string, size: Size) => {
     setSlotContentSizes((previous) => {
       const current = previous.get(id);
       if (
