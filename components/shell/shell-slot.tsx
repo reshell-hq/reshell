@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { anchorHitZoneStyle } from "@/lib/shell/coordinates";
 import { useShell, useShellEdge } from "./shell-context";
+import { ShellHandle } from "./shell-handle";
 import { ShellSlotPortal } from "./shell-slot-portal";
 import { useSlotMeasure } from "./use-slot-measure";
 
 export type ShellSlotProps = {
   id: string;
   anchorIndex?: number;
+  handle?: ReactNode;
+  handleLabel?: string;
   children?: ReactNode;
 };
 
@@ -24,6 +27,8 @@ const OFFSCREEN_MEASURE_STYLE = {
 export function ShellSlot({
   id,
   anchorIndex = 0,
+  handle,
+  handleLabel,
   children,
 }: ShellSlotProps) {
   const { side, siblingCount } = useShellEdge();
@@ -82,6 +87,11 @@ export function ShellSlot({
           style={activationStyle}
           onPointerEnter={() => activate(id)}
         />
+      ) : null}
+      {handle ? (
+        <ShellHandle slotId={id} label={handleLabel ?? `Open ${id}`}>
+          {handle}
+        </ShellHandle>
       ) : null}
       {children ? <ShellSlotPortal slotId={id}>{children}</ShellSlotPortal> : null}
     </>
