@@ -18,6 +18,9 @@ export const MIN_NOTCH_SIZE = {
   height: 40,
 } as const;
 
+/** Distance (CSS px) a slot handle sits outside the shell border. */
+export const HANDLE_OFFSET_PX = 8;
+
 export const NOTCH_ANIMATION = {
   smoothing: 0.18,
   settleThreshold: 0.05,
