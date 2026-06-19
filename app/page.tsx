@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
 import { SearchSlot } from "@/components/shell/search-slot";
 
@@ -61,20 +61,47 @@ function fuzzyMatch(query: string, value: string): boolean {
 }
 
 export default function Home() {
-  const search = useCallback(async (query: string): Promise<string[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return DATASET.filter((item) => fuzzyMatch(query, item));
-  }, []);
+  const [query, setQuery] = useState("");
+
+  const results = useMemo(
+    () => DATASET.filter((item) => fuzzyMatch(query, item)),
+    [query],
+  );
 
   return (
     <Shell>
+      <Shell.Edge side="left">
+        <Shell.Slot
+          id="hello"
+          handle={
+            <span aria-hidden className="text-lg leading-none">
+              👍
+            </span>
+          }
+          handleLabel="Open hello"
+        >
+          <div className="w-full flex items-center justify-end  bg-red-50">
+            <div>hello</div>
+          </div>
+        </Shell.Slot>
+      </Shell.Edge>
       <Shell.Edge side="bottom">
         <Shell.Slot
           id="search"
-          handle={<span aria-hidden className="text-lg leading-none">⌕</span>}
+          handle={
+            <span aria-hidden className="text-lg leading-none">
+              ⌕
+            </span>
+          }
           handleLabel="Open search"
         >
-          <SearchSlot onSearch={search} placeholder="Search fruit…" label="Search fruit" />
+          <SearchSlot
+            query={query}
+            onQueryChange={setQuery}
+            results={results}
+            placeholder="Search fruit…"
+            label="Search fruit"
+          />
         </Shell.Slot>
       </Shell.Edge>
       <Shell.Content>
