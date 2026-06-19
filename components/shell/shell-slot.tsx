@@ -33,7 +33,8 @@ export function ShellSlot({
 }: ShellSlotProps) {
   const { side, siblingCount } = useShellEdge();
   const {
-    activate,
+    hoverEnter,
+    hoverLeave,
     activeSlotId,
     registerSlot,
     unregisterSlot,
@@ -85,7 +86,8 @@ export function ShellSlot({
           data-shell-slot={id}
           className="z-[55] touch-none"
           style={activationStyle}
-          onPointerEnter={() => activate(id)}
+          onPointerEnter={() => hoverEnter(id)}
+          onPointerLeave={hoverLeave}
         />
       ) : null}
       {handle ? (

@@ -1,81 +1,133 @@
 import { NOTCH_ANIMATION } from "./constants";
 import { isSettled, lerp } from "./easing";
-import type { NotchSpec, SlotAnchor, SlotExtent } from "./types";
+import type { NotchSpec, ShellEdge, SlotExtent } from "./types";
 
-type AnimationState = {
-  anchor: SlotAnchor | null;
-  extent: SlotExtent;
+const ZERO_BOX: SlotExtent = { depth: 0, halfExtent: 0 };
+
+/**
+ * Animated notch state. `box` is the full-size target extent; the visible
+ * cavity is `box × progress`, so a single `progress` scalar (0→1) drives both
+ * the pocket size and the content scale. `center`/`edge` let the pocket slide
+ * along a single edge between slots (see docs/adr/0002, docs/adr/0003).
+ */
+type AnimState = {
+  edge: ShellEdge | null;
+  center: number;
+  box: SlotExtent;
+  progress: number;
 };
 
-function closedState(anchor: SlotAnchor | null = null): AnimationState {
+type AnimTarget = AnimState;
+
+/** Emitted each frame: the cavity (box × progress) plus the raw progress. */
+export type ShellAnimationFrame = {
+  notch: NotchSpec | null;
+  progress: number;
+};
+
+function closedState(): AnimState {
+  return { edge: null, center: 0, box: { ...ZERO_BOX }, progress: 0 };
+}
+
+function frameOf(state: AnimState): ShellAnimationFrame {
+  if (!state.edge || state.progress <= 0.0001) {
+    return { notch: null, progress: 0 };
+  }
+
   return {
-    anchor,
-    extent: { depth: 0, halfExtent: 0 },
+    notch: {
+      edge: state.edge,
+      center: state.center,
+      depth: state.box.depth * state.progress,
+      halfExtent: state.box.halfExtent * state.progress,
+    },
+    progress: state.progress,
   };
 }
 
-function toNotchSpec(state: AnimationState): NotchSpec | null {
-  if (!state.anchor) {
-    return null;
-  }
-
-  if (state.extent.depth === 0 && state.extent.halfExtent === 0) {
-    return null;
-  }
-
-  return { ...state.anchor, ...state.extent };
-}
-
 export function createShellNotchAnimationController() {
-  let current: AnimationState = closedState();
-  let target: AnimationState = closedState();
+  let current: AnimState = closedState();
+  let target: AnimTarget = closedState();
+  // A cross-edge open queued behind the current pocket's collapse.
+  let pending: NotchSpec | null = null;
   let frameId = 0;
-  let onFrame: ((notch: NotchSpec | null) => void) | null = null;
+  let onFrame: ((frame: ShellAnimationFrame) => void) | null = null;
 
   const { smoothing, settleThreshold } = NOTCH_ANIMATION;
 
   function emitFrame() {
-    onFrame?.(toNotchSpec(current));
+    onFrame?.(frameOf(current));
+  }
+
+  function openTo(notch: NotchSpec) {
+    target = {
+      edge: notch.edge,
+      center: notch.center,
+      box: { depth: notch.depth, halfExtent: notch.halfExtent },
+      progress: 1,
+    };
+  }
+
+  function beginClose() {
+    target = {
+      edge: current.edge,
+      center: current.center,
+      box: { ...current.box },
+      progress: 0,
+    };
+  }
+
+  // Snap geometry to a new anchor so progress can grow from its current value
+  // without the pocket sliding in from a stale position.
+  function adoptForOpen(notch: NotchSpec) {
+    current.edge = notch.edge;
+    current.center = notch.center;
+    current.box = { depth: notch.depth, halfExtent: notch.halfExtent };
+    openTo(notch);
   }
 
   function step() {
-    current.extent = {
-      depth: lerp(current.extent.depth, target.extent.depth, smoothing),
+    current.center = lerp(current.center, target.center, smoothing);
+    current.box = {
+      depth: lerp(current.box.depth, target.box.depth, smoothing),
       halfExtent: lerp(
-        current.extent.halfExtent,
-        target.extent.halfExtent,
+        current.box.halfExtent,
+        target.box.halfExtent,
         smoothing,
       ),
     };
+    current.progress = lerp(current.progress, target.progress, smoothing);
 
-    const depthSettled = isSettled(
-      current.extent.depth,
-      target.extent.depth,
-      settleThreshold,
-    );
-    const extentSettled = isSettled(
-      current.extent.halfExtent,
-      target.extent.halfExtent,
-      settleThreshold,
-    );
+    const settled =
+      isSettled(current.progress, target.progress, settleThreshold) &&
+      isSettled(current.center, target.center, settleThreshold) &&
+      isSettled(current.box.depth, target.box.depth, settleThreshold) &&
+      isSettled(current.box.halfExtent, target.box.halfExtent, settleThreshold);
 
-    if (depthSettled && extentSettled) {
-      current.extent = { ...target.extent };
-
-      if (target.extent.depth === 0) {
-        current.anchor = target.anchor;
-        if (current.extent.depth === 0) {
-          current.anchor = null;
-        }
-      }
-
-      frameId = 0;
+    if (!settled) {
       emitFrame();
+      frameId = requestAnimationFrame(step);
       return;
     }
 
+    current.center = target.center;
+    current.box = { ...target.box };
+    current.progress = target.progress;
+
+    if (target.progress === 0) {
+      if (pending) {
+        const next = pending;
+        pending = null;
+        adoptForOpen(next);
+        emitFrame();
+        frameId = requestAnimationFrame(step);
+        return;
+      }
+      current = closedState();
+    }
+
+    frameId = 0;
     emitFrame();
-    frameId = requestAnimationFrame(step);
   }
 
   function ensureLoopRunning() {
@@ -85,42 +137,62 @@ export function createShellNotchAnimationController() {
   }
 
   return {
-    getAnimatedNotch(): NotchSpec | null {
-      return toNotchSpec(current);
-    },
-
-    setFrameListener(listener: (notch: NotchSpec | null) => void) {
-      onFrame = listener;
+    getAnimatedFrame(): ShellAnimationFrame {
+      return frameOf(current);
     },
 
     setTarget(notch: NotchSpec | null) {
-      if (notch) {
-        target = {
-          anchor: { edge: notch.edge, center: notch.center },
-          extent: { depth: notch.depth, halfExtent: notch.halfExtent },
-        };
-        current.anchor = { edge: notch.edge, center: notch.center };
+      if (!notch) {
+        pending = null;
+        beginClose();
         ensureLoopRunning();
         return;
       }
 
-      target = closedState(current.anchor);
+      const isOpen =
+        current.edge !== null && current.progress > settleThreshold;
+
+      if (!isOpen) {
+        pending = null;
+        adoptForOpen(notch);
+        ensureLoopRunning();
+        return;
+      }
+
+      if (notch.edge === current.edge) {
+        // Same edge while open: morph center/box, stay open (slide).
+        pending = null;
+        openTo(notch);
+        ensureLoopRunning();
+        return;
+      }
+
+      // Cross-edge while open: collapse here, then grow on the new edge.
+      pending = notch;
+      beginClose();
       ensureLoopRunning();
     },
 
     snapTo(notch: NotchSpec | null) {
+      pending = null;
       if (notch) {
         current = {
-          anchor: { edge: notch.edge, center: notch.center },
-          extent: { depth: notch.depth, halfExtent: notch.halfExtent },
+          edge: notch.edge,
+          center: notch.center,
+          box: { depth: notch.depth, halfExtent: notch.halfExtent },
+          progress: 1,
         };
-        target = { ...current };
+        target = { ...current, box: { ...current.box } };
       } else {
         current = closedState();
         target = closedState();
       }
 
       emitFrame();
+    },
+
+    setFrameListener(listener: (frame: ShellAnimationFrame) => void) {
+      onFrame = listener;
     },
 
     dispose() {

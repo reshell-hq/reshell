@@ -10,14 +10,26 @@ export function useShellAnimation(): {
 } {
   const {
     bounds,
+    viewport,
     activeSlotId,
     getAnchor,
     getSlotExtent,
     setAnimatedNotch,
+    setAnimatedProgress,
   } = useShell();
   const visiblePathRef = useRef<SVGPathElement>(null);
   const controllerRef = useRef(createShellNotchAnimationController());
   const reducedMotionRef = useRef(false);
+
+  // Refs so the rAF render loop always reads the latest geometry without
+  // tearing down the controller on every bounds/viewport change.
+  const boundsRef = useRef(bounds);
+  const viewportRef = useRef(viewport);
+
+  useEffect(() => {
+    boundsRef.current = bounds;
+    viewportRef.current = viewport;
+  }, [bounds, viewport]);
 
   const targetNotch = useMemo(() => {
     if (!activeSlotId) {
@@ -60,16 +72,32 @@ export function useShellAnimation(): {
     }
 
     const render = () => {
-      const notch = controller.getAnimatedNotch();
-      visiblePath.setAttribute("d", buildShellPath(bounds, notch));
+      const { notch, progress } = controller.getAnimatedFrame();
+      visiblePath.setAttribute(
+        "d",
+        buildShellPath(boundsRef.current, notch, viewportRef.current),
+      );
       setAnimatedNotch(notch);
+      setAnimatedProgress(progress);
     };
 
     controller.setFrameListener(render);
     render();
 
     return () => controller.dispose();
-  }, [bounds, setAnimatedNotch]);
+  }, [setAnimatedNotch, setAnimatedProgress]);
+
+  // Repaint the rim when bounds or viewport change (e.g. resize) without
+  // disturbing an in-flight animation.
+  useEffect(() => {
+    const visiblePath = visiblePathRef.current;
+    if (!visiblePath) {
+      return;
+    }
+
+    const { notch } = controllerRef.current.getAnimatedFrame();
+    visiblePath.setAttribute("d", buildShellPath(bounds, notch, viewport));
+  }, [bounds, viewport]);
 
   return { visiblePathRef };
 }

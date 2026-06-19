@@ -3,8 +3,14 @@
 import { useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
 import { SearchSlot } from "@/components/shell/search-slot";
+import {
+  NavigationSlot,
+  NotificationsSlot,
+  ProfileSlot,
+  SettingsSlot,
+} from "./demo-slots";
 
-const DATASET = [
+const FRUIT = [
   "Apple",
   "Apricot",
   "Avocado",
@@ -15,7 +21,6 @@ const DATASET = [
   "Cherry",
   "Coconut",
   "Cranberry",
-  "Date",
   "Dragonfruit",
   "Elderberry",
   "Fig",
@@ -41,6 +46,18 @@ const DATASET = [
   "Watermelon",
 ];
 
+const COMMANDS = [
+  "New project",
+  "New document",
+  "Invite teammate",
+  "Open settings",
+  "Toggle dark mode",
+  "Search docs",
+  "Go to dashboard",
+  "Run deploy",
+  "Sign out",
+];
+
 function fuzzyMatch(query: string, value: string): boolean {
   const needle = query.toLowerCase().trim();
   if (needle === "") {
@@ -62,54 +79,92 @@ function fuzzyMatch(query: string, value: string): boolean {
 
 export default function Home() {
   const [query, setQuery] = useState("");
+  const [command, setCommand] = useState("");
 
-  const results = useMemo(
-    () => DATASET.filter((item) => fuzzyMatch(query, item)),
+  const fruitResults = useMemo(
+    () => FRUIT.filter((item) => fuzzyMatch(query, item)),
     [query],
+  );
+  const commandResults = useMemo(
+    () => COMMANDS.filter((item) => fuzzyMatch(command, item)),
+    [command],
   );
 
   return (
     <Shell>
-      <Shell.Edge side="left">
+      <Shell.Edge side="top">
         <Shell.Slot
-          id="hello"
-          handle={
-            <span aria-hidden className="text-lg leading-none">
-              👍
-            </span>
-          }
-          handleLabel="Open hello"
+          id="notifications"
+          handle={<span aria-hidden>🔔</span>}
+          handleLabel="Open notifications"
         >
-          <div className="w-full flex items-center justify-end  bg-red-50">
-            <div>hello</div>
-          </div>
+          <NotificationsSlot />
+        </Shell.Slot>
+        <Shell.Slot
+          id="profile"
+          handle={<span aria-hidden>🙂</span>}
+          handleLabel="Open profile"
+        >
+          <ProfileSlot />
         </Shell.Slot>
       </Shell.Edge>
+
+      <Shell.Edge side="left">
+        <Shell.Slot
+          id="navigation"
+          handle={<span aria-hidden>☰</span>}
+          handleLabel="Open navigation"
+        >
+          <NavigationSlot />
+        </Shell.Slot>
+      </Shell.Edge>
+
+      <Shell.Edge side="right">
+        <Shell.Slot
+          id="settings"
+          handle={<span aria-hidden>⚙</span>}
+          handleLabel="Open settings"
+        >
+          <SettingsSlot />
+        </Shell.Slot>
+      </Shell.Edge>
+
       <Shell.Edge side="bottom">
         <Shell.Slot
           id="search"
-          handle={
-            <span aria-hidden className="text-lg leading-none">
-              ⌕
-            </span>
-          }
+          handle={<span aria-hidden>🔍</span>}
           handleLabel="Open search"
         >
           <SearchSlot
             query={query}
             onQueryChange={setQuery}
-            results={results}
+            results={fruitResults}
             placeholder="Search fruit…"
             label="Search fruit"
           />
         </Shell.Slot>
+        <Shell.Slot
+          id="command"
+          handle={<span aria-hidden>⌘</span>}
+          handleLabel="Open command palette"
+        >
+          <SearchSlot
+            query={command}
+            onQueryChange={setCommand}
+            results={commandResults}
+            placeholder="Run a command…"
+            label="Command palette"
+          />
+        </Shell.Slot>
       </Shell.Edge>
+
       <Shell.Content>
-        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+        <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
           <h1 className="text-3xl font-semibold tracking-tight">reshell</h1>
           <p className="max-w-md text-zinc-500">
-            Hover the handle at the bottom edge to open the search slot. Results
-            load asynchronously and grow the notch upward.
+            Hover the handles around the rim to open slots. Two handles share the
+            bottom and top edges, so the notch slides between them; the search
+            and command palettes grow as results load.
           </p>
         </main>
       </Shell.Content>

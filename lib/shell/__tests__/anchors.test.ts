@@ -7,9 +7,9 @@ describe("anchorPositions", () => {
     const anchors = anchorPositions(SHELL_BOUNDS, "left", 3);
 
     expect(anchors).toHaveLength(3);
-    expect(anchors[0]).toBeCloseTo(28);
+    expect(anchors[0]).toBeCloseTo(29.5);
     expect(anchors[1]).toBeCloseTo(50);
-    expect(anchors[2]).toBeCloseTo(72);
+    expect(anchors[2]).toBeCloseTo(70.5);
     expect(anchors[1] - anchors[0]).toBeCloseTo(anchors[2] - anchors[1]);
   });
 
@@ -17,6 +17,6 @@ describe("anchorPositions", () => {
     const anchors = anchorPositions(SHELL_BOUNDS, "bottom", 1);
 
     expect(anchors).toHaveLength(1);
-    expect(anchors[0]).toBeCloseTo(51.5);
+    expect(anchors[0]).toBeCloseTo(50);
   });
 });

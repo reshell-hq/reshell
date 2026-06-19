@@ -1,12 +1,70 @@
 import { NOTCH_CORNER_RADIUS } from "./constants";
-import type { NotchSpec, ShellBounds } from "./types";
+import type { NotchSpec, ShellBounds, ShellEdge, Size } from "./types";
 
-function notchCornerRadius(depth: number, halfExtent: number): number {
-  return Math.min(NOTCH_CORNER_RADIUS, halfExtent, depth / 2);
+/**
+ * Used when the live viewport size is unknown (SSR, pre-measurement, unit
+ * tests). Aspect ratio 1 means radii are left in their raw viewBox units, which
+ * matches the original square-coordinate behaviour.
+ */
+const UNIT_VIEWPORT: Size = { width: 1, height: 1 };
+
+function aspectOf(viewport: Size): number {
+  if (viewport.width <= 0 || viewport.height <= 0) {
+    return 1;
+  }
+  return viewport.width / viewport.height;
 }
 
-export function buildRoundedRectPath(bounds: ShellBounds): string {
-  const { left, top, right, bottom, rx, ry } = bounds;
+/**
+ * Corner radii (viewBox units) that render as visually circular despite
+ * `preserveAspectRatio="none"` stretching the 100×100 user space to fill a
+ * non-square viewport. The vertical radius is the canonical `r`; the horizontal
+ * radius is divided by the aspect ratio so both map to the same pixel length.
+ * See docs/adr/0001.
+ */
+function circularRadii(
+  r: number,
+  viewport: Size,
+): { rx: number; ry: number } {
+  const aspect = aspectOf(viewport);
+  return { rx: r / aspect, ry: r };
+}
+
+/**
+ * Notch inner-corner radii, aspect-corrected like the outer corners and clamped
+ * so the rounding never exceeds the room available on each axis of the pocket.
+ */
+function notchRadii(
+  edge: ShellEdge,
+  depth: number,
+  halfExtent: number,
+  viewport: Size,
+): { nrx: number; nry: number } {
+  const aspect = aspectOf(viewport);
+  const baseY = NOTCH_CORNER_RADIUS;
+  const baseX = NOTCH_CORNER_RADIUS / aspect;
+
+  if (edge === "top" || edge === "bottom") {
+    // depth runs vertically, the pocket spans 2·halfExtent horizontally.
+    return {
+      nrx: Math.min(baseX, halfExtent),
+      nry: Math.min(baseY, depth / 2),
+    };
+  }
+
+  // left | right: depth runs horizontally, the pocket spans 2·halfExtent.
+  return {
+    nrx: Math.min(baseX, depth / 2),
+    nry: Math.min(baseY, halfExtent),
+  };
+}
+
+export function buildRoundedRectPath(
+  bounds: ShellBounds,
+  viewport: Size = UNIT_VIEWPORT,
+): string {
+  const { left, top, right, bottom } = bounds;
+  const { rx, ry } = circularRadii(bounds.ry, viewport);
 
   return [
     `M ${left + rx} ${top}`,
@@ -26,10 +84,15 @@ function hasVisibleNotch(notch: NotchSpec | null): notch is NotchSpec {
   return notch !== null && notch.depth > 0 && notch.halfExtent > 0;
 }
 
-function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
-  const { left, top, right, bottom, rx, ry } = bounds;
+function buildNotchPath(
+  bounds: ShellBounds,
+  notch: NotchSpec,
+  viewport: Size,
+): string {
+  const { left, top, right, bottom } = bounds;
   const { edge, center, depth, halfExtent } = notch;
-  const nr = notchCornerRadius(depth, halfExtent);
+  const { rx, ry } = circularRadii(bounds.ry, viewport);
+  const { nrx, nry } = notchRadii(edge, depth, halfExtent, viewport);
 
   switch (edge) {
     case "left": {
@@ -44,14 +107,14 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `Q ${right} ${bottom} ${right - rx} ${bottom}`,
         `H ${left + rx}`,
         `Q ${left} ${bottom} ${left} ${bottom - ry}`,
-        `V ${notchBottom + nr}`,
-        `Q ${left} ${notchBottom} ${left + nr} ${notchBottom}`,
-        `H ${wall - nr}`,
-        `Q ${wall} ${notchBottom} ${wall} ${notchBottom - nr}`,
-        `V ${notchTop + nr}`,
-        `Q ${wall} ${notchTop} ${wall - nr} ${notchTop}`,
-        `H ${left + nr}`,
-        `Q ${left} ${notchTop} ${left} ${notchTop - nr}`,
+        `V ${notchBottom + nry}`,
+        `Q ${left} ${notchBottom} ${left + nrx} ${notchBottom}`,
+        `H ${wall - nrx}`,
+        `Q ${wall} ${notchBottom} ${wall} ${notchBottom - nry}`,
+        `V ${notchTop + nry}`,
+        `Q ${wall} ${notchTop} ${wall - nrx} ${notchTop}`,
+        `H ${left + nrx}`,
+        `Q ${left} ${notchTop} ${left} ${notchTop - nry}`,
         `V ${top + ry}`,
         `Q ${left} ${top} ${left + rx} ${top}`,
         "Z",
@@ -65,14 +128,14 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `M ${left + rx} ${top}`,
         `H ${right - rx}`,
         `Q ${right} ${top} ${right} ${top + ry}`,
-        `V ${notchTop - nr}`,
-        `Q ${right} ${notchTop} ${right - nr} ${notchTop}`,
-        `H ${wall + nr}`,
-        `Q ${wall} ${notchTop} ${wall} ${notchTop + nr}`,
-        `V ${notchBottom - nr}`,
-        `Q ${wall} ${notchBottom} ${wall + nr} ${notchBottom}`,
-        `H ${right - nr}`,
-        `Q ${right} ${notchBottom} ${right} ${notchBottom + nr}`,
+        `V ${notchTop - nry}`,
+        `Q ${right} ${notchTop} ${right - nrx} ${notchTop}`,
+        `H ${wall + nrx}`,
+        `Q ${wall} ${notchTop} ${wall} ${notchTop + nry}`,
+        `V ${notchBottom - nry}`,
+        `Q ${wall} ${notchBottom} ${wall + nrx} ${notchBottom}`,
+        `H ${right - nrx}`,
+        `Q ${right} ${notchBottom} ${right} ${notchBottom + nry}`,
         `V ${bottom - ry}`,
         `Q ${right} ${bottom} ${right - rx} ${bottom}`,
         `H ${left + rx}`,
@@ -88,14 +151,14 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
       const wall = top + depth;
       return [
         `M ${left + rx} ${top}`,
-        `H ${notchLeft - nr}`,
-        `Q ${notchLeft} ${top} ${notchLeft} ${top + nr}`,
-        `V ${wall - nr}`,
-        `Q ${notchLeft} ${wall} ${notchLeft + nr} ${wall}`,
-        `H ${notchRight - nr}`,
-        `Q ${notchRight} ${wall} ${notchRight} ${wall - nr}`,
-        `V ${top + nr}`,
-        `Q ${notchRight} ${top} ${notchRight + nr} ${top}`,
+        `H ${notchLeft - nrx}`,
+        `Q ${notchLeft} ${top} ${notchLeft} ${top + nry}`,
+        `V ${wall - nry}`,
+        `Q ${notchLeft} ${wall} ${notchLeft + nrx} ${wall}`,
+        `H ${notchRight - nrx}`,
+        `Q ${notchRight} ${wall} ${notchRight} ${wall - nry}`,
+        `V ${top + nry}`,
+        `Q ${notchRight} ${top} ${notchRight + nrx} ${top}`,
         `H ${right - rx}`,
         `Q ${right} ${top} ${right} ${top + ry}`,
         `V ${bottom - ry}`,
@@ -117,14 +180,14 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
         `Q ${right} ${top} ${right} ${top + ry}`,
         `V ${bottom - ry}`,
         `Q ${right} ${bottom} ${right - rx} ${bottom}`,
-        `H ${notchRight + nr}`,
-        `Q ${notchRight} ${bottom} ${notchRight} ${bottom - nr}`,
-        `V ${wall + nr}`,
-        `Q ${notchRight} ${wall} ${notchRight - nr} ${wall}`,
-        `H ${notchLeft + nr}`,
-        `Q ${notchLeft} ${wall} ${notchLeft} ${wall + nr}`,
-        `V ${bottom - nr}`,
-        `Q ${notchLeft} ${bottom} ${notchLeft - nr} ${bottom}`,
+        `H ${notchRight + nrx}`,
+        `Q ${notchRight} ${bottom} ${notchRight} ${bottom - nry}`,
+        `V ${wall + nry}`,
+        `Q ${notchRight} ${wall} ${notchRight - nrx} ${wall}`,
+        `H ${notchLeft + nrx}`,
+        `Q ${notchLeft} ${wall} ${notchLeft} ${wall + nry}`,
+        `V ${bottom - nry}`,
+        `Q ${notchLeft} ${bottom} ${notchLeft - nrx} ${bottom}`,
         `H ${left + rx}`,
         `Q ${left} ${bottom} ${left} ${bottom - ry}`,
         `V ${top + ry}`,
@@ -138,10 +201,11 @@ function buildNotchPath(bounds: ShellBounds, notch: NotchSpec): string {
 export function buildShellPath(
   bounds: ShellBounds,
   notch: NotchSpec | null,
+  viewport: Size = UNIT_VIEWPORT,
 ): string {
   if (!hasVisibleNotch(notch)) {
-    return buildRoundedRectPath(bounds);
+    return buildRoundedRectPath(bounds, viewport);
   }
 
-  return buildNotchPath(bounds, notch);
+  return buildNotchPath(bounds, notch, viewport);
 }

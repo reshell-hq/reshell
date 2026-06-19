@@ -3,7 +3,7 @@ import { SHELL_BOUNDS } from "../constants";
 import { buildShellPath } from "../notch";
 
 const LEFT_NOTCH_CHARACTERIZATION =
-  "M 8 2 H 95 Q 98 2 98 5 V 95 Q 98 98 95 98 H 8 Q 5 98 5 95 V 71.5 Q 5 70 6.5 70 H 13.5 Q 15 70 15 68.5 V 31.5 Q 15 30 13.5 30 H 6.5 Q 5 30 5 28.5 V 5 Q 5 2 8 2 Z";
+  "M 8 5 H 92 Q 95 5 95 8 V 92 Q 95 95 92 95 H 8 Q 5 95 5 92 V 71.5 Q 5 70 6.5 70 H 13.5 Q 15 70 15 68.5 V 31.5 Q 15 30 13.5 30 H 6.5 Q 5 30 5 28.5 V 8 Q 5 5 8 5 Z";
 
 describe("buildShellPath", () => {
   it("returns a closed path when notch is null", () => {
@@ -21,12 +21,12 @@ describe("buildShellPath", () => {
       halfExtent: 20,
     });
 
-    // inner wall sits at bottom - depth = 88, rounded by the corner radius
-    expect(path).toContain("Q 70 88 68.5 88");
-    expect(path).toContain("Q 30 88 30 89.5");
-    // bottom edge stays open between the notch walls (no straight line at y=98)
-    expect(path).not.toContain("L 30 98");
-    expect(path).toContain("Q 30 98 28.5 98");
+    // inner wall sits at bottom - depth = 85, rounded by the corner radius
+    expect(path).toContain("Q 70 85 68.5 85");
+    expect(path).toContain("Q 30 85 30 86.5");
+    // bottom edge stays open between the notch walls (no straight line at y=95)
+    expect(path).not.toContain("L 30 95");
+    expect(path).toContain("Q 30 95 28.5 95");
   });
 
   it("rounds the notch corners with quadratic curves, not sharp lines", () => {
@@ -48,7 +48,31 @@ describe("buildShellPath", () => {
       halfExtent: 20,
     });
 
-    expect(path).not.toContain("Q 70 88 68.5 88");
+    expect(path).not.toContain("Q 70 85 68.5 85");
     expect(path.endsWith("Z")).toBe(true);
+  });
+
+  it("shrinks the horizontal corner radius on a wide viewport so corners read as circular", () => {
+    // viewBox is stretched to fill the viewport; on a 2:1 viewport the
+    // horizontal radius must be half the vertical radius to map to equal pixels.
+    const wide = buildShellPath(SHELL_BOUNDS, null, {
+      width: 2000,
+      height: 1000,
+    });
+
+    // canonical radius is bounds.ry (3); horizontal radius becomes 3 / 2 = 1.5
+    // → first horizontal move is to left + rx = 5 + 1.5 = 6.5
+    expect(wide.startsWith("M 6.5 5")).toBe(true);
+    // vertical radius is unchanged at 3 → first vertical curve ends at top + ry = 8
+    expect(wide).toContain("Q 95 5 95 8");
+  });
+
+  it("leaves radii untouched when the viewport is square (aspect 1)", () => {
+    const square = buildShellPath(SHELL_BOUNDS, null, {
+      width: 800,
+      height: 800,
+    });
+
+    expect(square).toBe(buildShellPath(SHELL_BOUNDS, null));
   });
 });

@@ -2,9 +2,9 @@ import type { ShellBounds } from "./types";
 
 export const SHELL_BOUNDS: ShellBounds = {
   left: 5,
-  top: 2,
-  right: 98,
-  bottom: 98,
+  top: 5,
+  right: 95,
+  bottom: 95,
   rx: 3,
   ry: 3,
 };
@@ -18,8 +18,20 @@ export const MIN_NOTCH_SIZE = {
   height: 40,
 } as const;
 
-/** Distance (CSS px) a slot handle sits outside the shell border. */
-export const HANDLE_OFFSET_PX = 8;
+/** Gap (CSS px) between the shell rim and a slot handle in the gutter. */
+export const HANDLE_OFFSET_PX = 6;
+
+/**
+ * Hover debounce: a handle must be hovered this long before its slot opens, so
+ * sweeping the pointer across a cluster of handles doesn't cascade opens.
+ */
+export const HOVER_OPEN_DELAY_MS = 70;
+
+/**
+ * Grace period before a slot closes after the pointer leaves, so travel between
+ * a handle and its revealed panel (or between adjacent handles) doesn't flicker.
+ */
+export const HOVER_CLOSE_DELAY_MS = 120;
 
 export const NOTCH_ANIMATION = {
   smoothing: 0.18,

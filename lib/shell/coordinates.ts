@@ -1,5 +1,12 @@
 import type { CSSProperties } from "react";
-import type { NotchSpec, ShellBounds, SlotAnchor, SlotExtent } from "./types";
+import type {
+  NotchSpec,
+  ShellBounds,
+  ShellEdge,
+  SlotAnchor,
+  SlotExtent,
+} from "./types";
+import { transformOriginForEdge } from "./viewbox-to-css";
 
 const VIEWBOX_SIZE = 100;
 
@@ -96,6 +103,56 @@ export function notchContentStyle(
         height: pct(span),
         right: 0,
         left: pct(bounds.right - depth),
+      };
+  }
+}
+
+/**
+ * Positions the full-size content inside the clipped cavity and scales it by
+ * the open progress, pinned to the docking edge. Because the cavity is also
+ * `box × progress`, the scaled content exactly fills it — content starts tiny
+ * inside the small notch and zooms to full size as it opens (see
+ * docs/adr/0003). The content keeps its natural layout; only the paint scales.
+ */
+export function revealContentStyle(
+  edge: ShellEdge,
+  progress: number,
+): CSSProperties {
+  const scale = Math.max(progress, 0);
+  const transformOrigin = transformOriginForEdge(edge);
+
+  switch (edge) {
+    case "bottom":
+      return {
+        position: "absolute",
+        bottom: 0,
+        left: "50%",
+        transform: `translateX(-50%) scale(${scale})`,
+        transformOrigin,
+      };
+    case "top":
+      return {
+        position: "absolute",
+        top: 0,
+        left: "50%",
+        transform: `translateX(-50%) scale(${scale})`,
+        transformOrigin,
+      };
+    case "left":
+      return {
+        position: "absolute",
+        left: 0,
+        top: "50%",
+        transform: `translateY(-50%) scale(${scale})`,
+        transformOrigin,
+      };
+    case "right":
+      return {
+        position: "absolute",
+        right: 0,
+        top: "50%",
+        transform: `translateY(-50%) scale(${scale})`,
+        transformOrigin,
       };
   }
 }

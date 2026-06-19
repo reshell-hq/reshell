@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -14,7 +15,11 @@ import {
 } from "react";
 import { getSlotAnchor } from "@/lib/shell/active-notch";
 import { clampExtent } from "@/lib/shell/clamp";
-import { MIN_NOTCH_SIZE } from "@/lib/shell/constants";
+import {
+  HOVER_CLOSE_DELAY_MS,
+  HOVER_OPEN_DELAY_MS,
+  MIN_NOTCH_SIZE,
+} from "@/lib/shell/constants";
 import { contentSizeToExtent } from "@/lib/shell/map-content-size";
 import {
   pixelsToViewBox,
@@ -32,15 +37,23 @@ import type {
 
 type ShellContextValue = {
   bounds: ShellBounds;
+  viewport: Size;
   activeSlotId: string | null;
   animatedNotch: NotchSpec | null;
+  animatedProgress: number;
   slots: ReadonlyMap<string, SlotRegistration>;
   slotContentSizes: ReadonlyMap<string, Size>;
   shellSvgRef: RefObject<SVGSVGElement | null>;
   overlayElement: HTMLDivElement | null;
   setOverlayElement: (element: HTMLDivElement | null) => void;
-  activate: (id: string) => void;
-  deactivate: () => void;
+  setViewport: (size: Size) => void;
+  hoverEnter: (id: string) => void;
+  hoverLeave: () => void;
+  focusOpen: (id: string) => void;
+  toggleSlot: (id: string) => void;
+  pinActive: () => void;
+  unpinActive: () => void;
+  closeActive: () => void;
   registerSlot: (slot: SlotRegistration) => void;
   unregisterSlot: (id: string) => void;
   getAnchor: (id: string) => SlotAnchor | null;
@@ -48,6 +61,7 @@ type ShellContextValue = {
   getMinSlotExtent: (id: string) => SlotExtent | null;
   updateSlotContentSize: (id: string, size: Size) => void;
   setAnimatedNotch: Dispatch<SetStateAction<NotchSpec | null>>;
+  setAnimatedProgress: Dispatch<SetStateAction<number>>;
 };
 
 const ShellContext = createContext<ShellContextValue | null>(null);
@@ -87,6 +101,7 @@ function extentFromPixelSize(
 export function ShellProvider({ bounds, children }: ShellProviderProps) {
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
   const [animatedNotch, setAnimatedNotch] = useState<NotchSpec | null>(null);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
   const [slots, setSlots] = useState<Map<string, SlotRegistration>>(
     () => new Map(),
   );
@@ -96,6 +111,18 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
   const shellSvgRef = useRef<SVGSVGElement | null>(null);
   const [overlayElement, setOverlayElement] =
     useState<HTMLDivElement | null>(null);
+  const [viewport, setViewportState] = useState<Size>({
+    width: 0,
+    height: 0,
+  });
+
+  const setViewport = useCallback((size: Size) => {
+    setViewportState((current) =>
+      current.width === size.width && current.height === size.height
+        ? current
+        : size,
+    );
+  }, []);
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
     setSlots((previous) => new Map(previous).set(slot.id, slot));
@@ -130,12 +157,109 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
     });
   }, []);
 
-  const activate = useCallback((id: string) => {
-    setActiveSlotId(id);
+  const pinnedRef = useRef(false);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeSlotRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeSlotRef.current = activeSlotId;
+  }, [activeSlotId]);
+
+  const clearOpenTimer = useCallback(() => {
+    if (openTimerRef.current !== null) {
+      clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
   }, []);
 
-  const deactivate = useCallback(() => {
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearOpenTimer();
+      clearCloseTimer();
+    };
+  }, [clearOpenTimer, clearCloseTimer]);
+
+  // Hover intent (debounced): a handle/region must be hovered briefly before it
+  // opens, and entering any slot region cancels a pending close.
+  const hoverEnter = useCallback(
+    (id: string) => {
+      clearCloseTimer();
+      if (activeSlotRef.current === id) {
+        clearOpenTimer();
+        return;
+      }
+      clearOpenTimer();
+      openTimerRef.current = setTimeout(() => {
+        openTimerRef.current = null;
+        pinnedRef.current = false;
+        setActiveSlotId(id);
+      }, HOVER_OPEN_DELAY_MS);
+    },
+    [clearOpenTimer, clearCloseTimer],
+  );
+
+  // Pointer left a slot region: cancel a pending open, and close after a grace
+  // period unless the slot is pinned (focused / click-opened).
+  const hoverLeave = useCallback(() => {
+    clearOpenTimer();
+    if (pinnedRef.current) {
+      return;
+    }
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => {
+      closeTimerRef.current = null;
+      setActiveSlotId(null);
+    }, HOVER_CLOSE_DELAY_MS);
+  }, [clearOpenTimer, clearCloseTimer]);
+
+  // Keyboard focus opens immediately (no hover debounce).
+  const focusOpen = useCallback(
+    (id: string) => {
+      clearOpenTimer();
+      clearCloseTimer();
+      setActiveSlotId(id);
+    },
+    [clearOpenTimer, clearCloseTimer],
+  );
+
+  const closeActive = useCallback(() => {
+    clearOpenTimer();
+    clearCloseTimer();
+    pinnedRef.current = false;
     setActiveSlotId(null);
+  }, [clearOpenTimer, clearCloseTimer]);
+
+  // Click pins a slot open (or closes it if it's already the pinned slot).
+  const toggleSlot = useCallback(
+    (id: string) => {
+      clearOpenTimer();
+      clearCloseTimer();
+      if (activeSlotRef.current === id && pinnedRef.current) {
+        pinnedRef.current = false;
+        setActiveSlotId(null);
+        return;
+      }
+      pinnedRef.current = true;
+      setActiveSlotId(id);
+    },
+    [clearOpenTimer, clearCloseTimer],
+  );
+
+  const pinActive = useCallback(() => {
+    pinnedRef.current = true;
+    clearCloseTimer();
+  }, [clearCloseTimer]);
+
+  const unpinActive = useCallback(() => {
+    pinnedRef.current = false;
   }, []);
 
   const getAnchor = useCallback(
@@ -187,15 +311,23 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
   const value = useMemo(
     (): ShellContextValue => ({
       bounds,
+      viewport,
       activeSlotId,
       animatedNotch,
+      animatedProgress,
       slots,
       slotContentSizes,
       shellSvgRef,
       overlayElement,
       setOverlayElement,
-      activate,
-      deactivate,
+      setViewport,
+      hoverEnter,
+      hoverLeave,
+      focusOpen,
+      toggleSlot,
+      pinActive,
+      unpinActive,
+      closeActive,
       registerSlot,
       unregisterSlot,
       getAnchor,
@@ -203,16 +335,25 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
       getMinSlotExtent,
       updateSlotContentSize,
       setAnimatedNotch,
+      setAnimatedProgress,
     }),
     [
       bounds,
+      viewport,
       activeSlotId,
       animatedNotch,
+      animatedProgress,
       slots,
       slotContentSizes,
       overlayElement,
-      activate,
-      deactivate,
+      setViewport,
+      hoverEnter,
+      hoverLeave,
+      focusOpen,
+      toggleSlot,
+      pinActive,
+      unpinActive,
+      closeActive,
       registerSlot,
       unregisterSlot,
       getAnchor,
