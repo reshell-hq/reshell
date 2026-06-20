@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { anchorHitZoneStyle } from "@/lib/shell/coordinates";
+import type { ShellHandleComponent } from "@/lib/shell/theme";
 import { useShell, useShellEdge } from "./shell-context";
 import { ShellHandle } from "./shell-handle";
 import { ShellSlotPortal } from "./shell-slot-portal";
@@ -10,8 +11,11 @@ import { useSlotMeasure } from "./use-slot-measure";
 export type ShellSlotProps = {
   id: string;
   anchorIndex?: number;
+  /** Inner content of the handle (icon/label). Its presence opts the slot into a handle. */
   handle?: ReactNode;
   handleLabel?: string;
+  /** Override the handle component for this slot only (else the theme's). */
+  Handle?: ShellHandleComponent;
   children?: ReactNode;
 };
 
@@ -29,6 +33,7 @@ export function ShellSlot({
   anchorIndex = 0,
   handle,
   handleLabel,
+  Handle,
   children,
 }: ShellSlotProps) {
   const { side, siblingCount } = useShellEdge();
@@ -101,7 +106,11 @@ export function ShellSlot({
         />
       ) : null}
       {handle ? (
-        <ShellHandle slotId={id} label={handleLabel ?? `Open ${id}`}>
+        <ShellHandle
+          slotId={id}
+          label={handleLabel ?? `Open ${id}`}
+          component={Handle}
+        >
           {handle}
         </ShellHandle>
       ) : null}

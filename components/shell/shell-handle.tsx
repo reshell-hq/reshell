@@ -3,26 +3,37 @@
 import { type ReactNode } from "react";
 import { HANDLE_OFFSET_PX } from "@/lib/shell/constants";
 import { handleStyle } from "@/lib/shell/handle-position";
+import type { ShellHandleComponent } from "@/lib/shell/theme";
 import { useShell } from "./shell-context";
 
 /**
- * Affordance rendered in the gutter outside the shell rim that opens its slot
- * on hover (debounced) and toggles a pinned-open state on click. Shares the
- * `data-shell-slot` marker with the activation zone and the portal; the
- * centralized hover controller (close delay + debounce) handles pointer travel
- * between handle and revealed content. Rendered as a button for keyboard/AT.
+ * Wires a slot's handle to the shell interaction model (hover intent, pin/
+ * toggle, focus) and gutter positioning, then delegates rendering to a headless
+ * handle component: a per-slot override, else the theme's `Handle`, else the
+ * built-in default. The component receives all behaviour as props and is
+ * responsible only for visuals (see docs/adr/0005).
  */
 export function ShellHandle({
   slotId,
   label,
+  component,
   children,
 }: {
   slotId: string;
   label: string;
+  component?: ShellHandleComponent;
   children: ReactNode;
 }) {
-  const { bounds, activeSlotId, hoverEnter, hoverLeave, focusOpen, toggleSlot, getAnchor } =
-    useShell();
+  const {
+    theme,
+    bounds,
+    activeSlotId,
+    hoverEnter,
+    hoverLeave,
+    focusOpen,
+    toggleSlot,
+    getAnchor,
+  } = useShell();
   const anchor = getAnchor(slotId);
   const isActive = activeSlotId === slotId;
 
@@ -30,14 +41,13 @@ export function ShellHandle({
     return null;
   }
 
+  const Handle = component ?? theme.Handle;
+
   return (
-    <button
-      type="button"
-      data-shell-slot={slotId}
-      aria-label={label}
-      aria-expanded={isActive}
-      data-active={isActive ? "" : undefined}
-      className="pointer-events-auto fixed z-[70] flex h-7 w-7 items-center justify-center rounded-full border border-zinc-300/70 bg-white/90 text-zinc-700 shadow-sm backdrop-blur transition-colors hover:border-zinc-400 hover:text-zinc-950 data-[active]:border-zinc-500 data-[active]:bg-zinc-900 data-[active]:text-white dark:border-zinc-700/70 dark:bg-zinc-900/90 dark:text-zinc-200 dark:data-[active]:bg-white dark:data-[active]:text-zinc-900"
+    <Handle
+      slotId={slotId}
+      label={label}
+      active={isActive}
       style={handleStyle(bounds, anchor, HANDLE_OFFSET_PX)}
       onPointerEnter={() => hoverEnter(slotId)}
       onPointerLeave={hoverLeave}
@@ -46,6 +56,6 @@ export function ShellHandle({
       onClick={() => toggleSlot(slotId)}
     >
       {children}
-    </button>
+    </Handle>
   );
 }
