@@ -19,7 +19,7 @@ function Panel({
 }) {
   return (
     <div
-      className={`flex flex-col gap-2 bg-white p-3 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50 ${className}`}
+      className={`flex flex-col gap-2  p-3 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50 ${className}`}
     >
       {title ? (
         <p className="px-1 text-xs font-medium uppercase tracking-wide text-zinc-400">
@@ -46,9 +46,7 @@ function Row({
         {icon}
       </span>
       <span className="flex-1">{label}</span>
-      {hint ? (
-        <span className="text-xs text-zinc-400">{hint}</span>
-      ) : null}
+      {hint ? <span className="text-xs text-zinc-400">{hint}</span> : null}
     </div>
   );
 }
@@ -78,7 +76,9 @@ export function NotificationsSlot() {
         </li>
         <li className="rounded-md bg-zinc-100 px-2.5 py-2 dark:bg-zinc-800">
           <p className="font-medium">Avery commented on “Shell rim”</p>
-          <p className="text-xs text-zinc-500">“corners look great now” · 9m ago</p>
+          <p className="text-xs text-zinc-500">
+            “corners look great now” · 9m ago
+          </p>
         </li>
         <li className="rounded-md bg-zinc-100 px-2.5 py-2 dark:bg-zinc-800">
           <p className="font-medium">Weekly report ready</p>
