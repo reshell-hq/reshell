@@ -54,10 +54,20 @@ export function ShellSlot({
 
   const measureRef = useSlotMeasure(handleMeasure);
 
+  const hasHandle = handle != null;
+
   useEffect(() => {
-    registerSlot({ id, edge: side, anchorIndex, siblingCount });
+    registerSlot({ id, edge: side, anchorIndex, siblingCount, hasHandle });
     return () => unregisterSlot(id);
-  }, [id, side, anchorIndex, siblingCount, registerSlot, unregisterSlot]);
+  }, [
+    id,
+    side,
+    anchorIndex,
+    siblingCount,
+    hasHandle,
+    registerSlot,
+    unregisterSlot,
+  ]);
 
   const anchor = getAnchor(id);
   const minExtent = getMinSlotExtent(id);

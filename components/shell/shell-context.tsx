@@ -33,6 +33,7 @@ import {
   type ShellThemeInput,
 } from "@/lib/shell/theme";
 import type {
+  EdgeGutters,
   NotchSpec,
   ShellBounds,
   ShellEdge,
@@ -145,9 +146,23 @@ export function ShellProvider({
     );
   }, []);
 
+  // An edge minimises to a sliver gutter unless one of its slots has a handle;
+  // the gutter exists to hold handles (see docs/adr/0004).
+  const gutters = useMemo((): EdgeGutters => {
+    const full = theme.gutterPx;
+    const min = theme.minimisedGutterPx;
+    const next: EdgeGutters = { top: min, right: min, bottom: min, left: min };
+    for (const slot of slots.values()) {
+      if (slot.hasHandle) {
+        next[slot.edge] = full;
+      }
+    }
+    return next;
+  }, [slots, theme.gutterPx, theme.minimisedGutterPx]);
+
   const bounds = useMemo(
-    () => shellBoundsForViewport(viewport, theme.gutterPx, SHELL_CORNER_RADIUS),
-    [viewport, theme.gutterPx],
+    () => shellBoundsForViewport(viewport, gutters, SHELL_CORNER_RADIUS),
+    [viewport, gutters],
   );
 
   const registerSlot = useCallback((slot: SlotRegistration) => {

@@ -14,6 +14,9 @@ export type ShellBounds = {
 
 export type ShellEdge = "top" | "right" | "bottom" | "left";
 
+/** Per-edge gutter sizes (CSS px) between the rim and the screen edge. */
+export type EdgeGutters = Record<ShellEdge, number>;
+
 export type SlotAnchor = {
   edge: ShellEdge;
   center: number;
@@ -31,4 +34,6 @@ export type SlotRegistration = {
   edge: ShellEdge;
   anchorIndex: number;
   siblingCount: number;
+  /** Whether this slot renders a handle (drives per-edge minimisation). */
+  hasHandle: boolean;
 };
