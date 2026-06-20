@@ -14,11 +14,14 @@ import {
   type SetStateAction,
 } from "react";
 import { getSlotAnchor } from "@/lib/shell/active-notch";
+import { shellBoundsForViewport } from "@/lib/shell/bounds";
 import { clampExtent } from "@/lib/shell/clamp";
 import {
   HOVER_CLOSE_DELAY_MS,
   HOVER_OPEN_DELAY_MS,
   MIN_NOTCH_SIZE,
+  SHELL_CORNER_RADIUS,
+  SHELL_GUTTER_PX,
 } from "@/lib/shell/constants";
 import { contentSizeToExtent } from "@/lib/shell/map-content-size";
 import {
@@ -67,7 +70,7 @@ type ShellContextValue = {
 const ShellContext = createContext<ShellContextValue | null>(null);
 
 type ShellProviderProps = {
-  bounds: ShellBounds;
+  gutterPx?: number;
   children: ReactNode;
 };
 
@@ -98,7 +101,10 @@ function extentFromPixelSize(
   return clampExtent(bounds, anchor, extent);
 }
 
-export function ShellProvider({ bounds, children }: ShellProviderProps) {
+export function ShellProvider({
+  gutterPx = SHELL_GUTTER_PX,
+  children,
+}: ShellProviderProps) {
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
   const [animatedNotch, setAnimatedNotch] = useState<NotchSpec | null>(null);
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -123,6 +129,11 @@ export function ShellProvider({ bounds, children }: ShellProviderProps) {
         : size,
     );
   }, []);
+
+  const bounds = useMemo(
+    () => shellBoundsForViewport(viewport, gutterPx, SHELL_CORNER_RADIUS),
+    [viewport, gutterPx],
+  );
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
     setSlots((previous) => new Map(previous).set(slot.id, slot));

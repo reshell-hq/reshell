@@ -1,7 +1,5 @@
 "use client";
 
-import { SHELL_BOUNDS } from "@/lib/shell/constants";
-import type { ShellBounds } from "@/lib/shell/types";
 import { ShellProvider, useShell } from "./shell-context";
 import { ShellFrame } from "./shell-frame";
 import { ShellOverlay } from "./shell-overlay";
@@ -12,7 +10,8 @@ import type { ReactNode } from "react";
 
 type ShellProps = {
   children: ReactNode;
-  bounds?: ShellBounds;
+  /** Pixel gutter between the rim and the screen edge. */
+  gutterPx?: number;
 };
 
 function ShellOverlayMount() {
@@ -20,9 +19,9 @@ function ShellOverlayMount() {
   return <ShellOverlay onMount={setOverlayElement} />;
 }
 
-function ShellRoot({ children, bounds = SHELL_BOUNDS }: ShellProps) {
+function ShellRoot({ children, gutterPx }: ShellProps) {
   return (
-    <ShellProvider bounds={bounds}>
+    <ShellProvider gutterPx={gutterPx}>
       <div className="relative flex min-h-full flex-1 flex-col">
         <ShellFrame />
         {children}

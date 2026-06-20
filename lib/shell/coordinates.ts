@@ -1,4 +1,8 @@
 import type { CSSProperties } from "react";
+import {
+  NOTCH_CONTENT_INSET_PX,
+  NOTCH_CONTENT_RADIUS_PX,
+} from "./constants";
 import type {
   NotchSpec,
   ShellBounds,
@@ -59,10 +63,23 @@ export function anchorHitZoneStyle(
   }
 }
 
+const I = NOTCH_CONTENT_INSET_PX;
+
+/** `value%` shifted inward by the content inset. */
+function inset(value: number): string {
+  return `calc(${value}% + ${I}px)`;
+}
+
+/** `value%` shrunk by the inset on both ends. */
+function insetSpan(value: number): string {
+  return `calc(${value}% - ${2 * I}px)`;
+}
+
 /**
- * Positions slot content inside the notch cavity, pinning the outer side to the
- * screen edge so the pocket reads as open (no floating border at the shell
- * boundary). The inner side tracks the animated notch wall.
+ * Positions slot content inside the notch cavity. The cavity is bounded by the
+ * rim edge on the outer side (matching the SVG notch opening) and the animated
+ * wall on the inner side, then pulled in by a small pixel inset on every side
+ * so the content never paints over the rim stroke (rounded corners included).
  */
 export function notchContentStyle(
   bounds: ShellBounds,
@@ -70,39 +87,44 @@ export function notchContentStyle(
 ): CSSProperties {
   const { edge, center, depth, halfExtent } = notch;
   const span = halfExtent * 2;
+  const borderRadius = `${NOTCH_CONTENT_RADIUS_PX}px`;
 
   switch (edge) {
     case "bottom":
       return {
         position: "fixed",
-        left: pct(center - halfExtent),
-        width: pct(span),
-        top: pct(bounds.bottom - depth),
-        bottom: 0,
+        left: inset(center - halfExtent),
+        width: insetSpan(span),
+        top: inset(bounds.bottom - depth),
+        bottom: inset(VIEWBOX_SIZE - bounds.bottom),
+        borderRadius,
       };
     case "top":
       return {
         position: "fixed",
-        left: pct(center - halfExtent),
-        width: pct(span),
-        top: 0,
-        bottom: pct(VIEWBOX_SIZE - (bounds.top + depth)),
+        left: inset(center - halfExtent),
+        width: insetSpan(span),
+        top: inset(bounds.top),
+        bottom: inset(VIEWBOX_SIZE - (bounds.top + depth)),
+        borderRadius,
       };
     case "left":
       return {
         position: "fixed",
-        top: pct(center - halfExtent),
-        height: pct(span),
-        left: 0,
-        right: pct(VIEWBOX_SIZE - (bounds.left + depth)),
+        top: inset(center - halfExtent),
+        height: insetSpan(span),
+        left: inset(bounds.left),
+        right: inset(VIEWBOX_SIZE - (bounds.left + depth)),
+        borderRadius,
       };
     case "right":
       return {
         position: "fixed",
-        top: pct(center - halfExtent),
-        height: pct(span),
-        right: 0,
-        left: pct(bounds.right - depth),
+        top: inset(center - halfExtent),
+        height: insetSpan(span),
+        right: inset(VIEWBOX_SIZE - bounds.right),
+        left: inset(bounds.right - depth),
+        borderRadius,
       };
   }
 }

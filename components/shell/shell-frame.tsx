@@ -65,7 +65,7 @@ function ShellOutline({
       fill="none"
       stroke="currentColor"
       strokeWidth={NOTCH_ANIMATION.visibleStrokeWidth}
-      vectorEffect="nonScalingStroke"
+      vectorEffect="non-scaling-stroke"
     />
   );
 }
