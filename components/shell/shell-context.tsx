@@ -4,29 +4,18 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
-  type Dispatch,
   type ReactNode,
   type RefObject,
-  type SetStateAction,
 } from "react";
-import { getSlotAnchor } from "@/lib/shell/active-notch";
-import { shellBoundsForViewport } from "@/lib/shell/bounds";
-import { clampExtent } from "@/lib/shell/clamp";
+import { MIN_NOTCH_SIZE, SHELL_CORNER_RADIUS } from "@/lib/shell/constants";
 import {
-  HOVER_CLOSE_DELAY_MS,
-  HOVER_OPEN_DELAY_MS,
-  MIN_NOTCH_SIZE,
-  SHELL_CORNER_RADIUS,
-} from "@/lib/shell/constants";
-import { contentSizeToExtent } from "@/lib/shell/map-content-size";
-import {
-  pixelsToViewBox,
-  pixelsToViewBoxWithScreen,
-} from "@/lib/shell/scale";
+  extentFromPixelSize,
+  getSlotAnchor,
+  shellBoundsForViewport,
+} from "@/lib/shell/geometry";
 import {
   DEFAULT_THEME_STYLE,
   type ShellTheme,
@@ -34,7 +23,6 @@ import {
 } from "@/lib/shell/theme";
 import type {
   EdgeGutters,
-  NotchSpec,
   ShellBounds,
   ShellEdge,
   Size,
@@ -43,14 +31,26 @@ import type {
   SlotRegistration,
 } from "@/lib/shell/types";
 import { DefaultHandle } from "./default-handle";
+import { useSlotActivation } from "./use-slot-activation";
+
+/**
+ * The live on-screen portal for the active slot, registered as raw DOM elements
+ * so the rAF render loop can position them each frame without a React render
+ * (see docs/adr/0006). `clip` is the cavity layer, `inner` holds the scaled
+ * content, `edge` is the slot's docking edge.
+ */
+export type PortalEntry = {
+  slotId: string;
+  edge: ShellEdge;
+  clip: HTMLElement;
+  inner: HTMLElement;
+};
 
 type ShellContextValue = {
   theme: ShellTheme;
   bounds: ShellBounds;
   viewport: Size;
   activeSlotId: string | null;
-  animatedNotch: NotchSpec | null;
-  animatedProgress: number;
   slots: ReadonlyMap<string, SlotRegistration>;
   slotContentSizes: ReadonlyMap<string, Size>;
   shellSvgRef: RefObject<SVGSVGElement | null>;
@@ -70,8 +70,13 @@ type ShellContextValue = {
   getSlotExtent: (id: string) => SlotExtent | null;
   getMinSlotExtent: (id: string) => SlotExtent | null;
   updateSlotContentSize: (id: string, size: Size) => void;
-  setAnimatedNotch: Dispatch<SetStateAction<NotchSpec | null>>;
-  setAnimatedProgress: Dispatch<SetStateAction<number>>;
+  // Ref-driven portal channel: the active portal registers its DOM here; the
+  // animation loop reads `portalRef` and publishes its per-frame writer into
+  // `portalPaintRef` so a freshly-mounted portal paints immediately.
+  portalRef: RefObject<PortalEntry | null>;
+  portalPaintRef: RefObject<(() => void) | null>;
+  setPortal: (entry: PortalEntry) => void;
+  clearPortal: (slotId: string) => void;
 };
 
 const ShellContext = createContext<ShellContextValue | null>(null);
@@ -89,41 +94,24 @@ function resolveTheme(input?: ShellThemeInput): ShellTheme {
   };
 }
 
-function pixelSizeToViewBox(
-  pixelSize: Size,
-  svg: SVGSVGElement | null,
-): Size {
-  if (svg) {
-    return pixelsToViewBox(pixelSize, svg);
-  }
-
-  return pixelsToViewBoxWithScreen(pixelSize, {
-    width: typeof window !== "undefined" ? window.innerWidth : 1000,
-    height: typeof window !== "undefined" ? window.innerHeight : 800,
-  });
-}
-
-function extentFromPixelSize(
-  bounds: ShellBounds,
-  slot: SlotRegistration,
-  pixelSize: Size,
-  svg: SVGSVGElement | null,
-): SlotExtent {
-  const anchor = getSlotAnchor(bounds, slot);
-  const viewBoxSize = pixelSizeToViewBox(pixelSize, svg);
-  const extent = contentSizeToExtent(slot.edge, viewBoxSize);
-
-  return clampExtent(bounds, anchor, extent);
-}
-
 export function ShellProvider({
   theme: themeInput,
   children,
 }: ShellProviderProps) {
   const theme = useMemo(() => resolveTheme(themeInput), [themeInput]);
-  const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
-  const [animatedNotch, setAnimatedNotch] = useState<NotchSpec | null>(null);
-  const [animatedProgress, setAnimatedProgress] = useState(0);
+  const {
+    activeSlotId,
+    setActiveSlotId,
+    hoverEnter,
+    hoverLeave,
+    focusOpen,
+    toggleSlot,
+    pinActive,
+    unpinActive,
+    closeActive,
+  } = useSlotActivation();
+  const portalRef = useRef<PortalEntry | null>(null);
+  const portalPaintRef = useRef<(() => void) | null>(null);
   const [slots, setSlots] = useState<Map<string, SlotRegistration>>(
     () => new Map(),
   );
@@ -144,6 +132,19 @@ export function ShellProvider({
         ? current
         : size,
     );
+  }, []);
+
+  const setPortal = useCallback((entry: PortalEntry) => {
+    portalRef.current = entry;
+    // Paint once now so a freshly-mounted portal (or a reduced-motion snap) is
+    // positioned before the next browser paint instead of flashing unstyled.
+    portalPaintRef.current?.();
+  }, []);
+
+  const clearPortal = useCallback((slotId: string) => {
+    if (portalRef.current?.slotId === slotId) {
+      portalRef.current = null;
+    }
   }, []);
 
   // An edge minimises to a sliver gutter unless one of its slots has a handle;
@@ -181,7 +182,7 @@ export function ShellProvider({
       return next;
     });
     setActiveSlotId((current) => (current === id ? null : current));
-  }, []);
+  }, [setActiveSlotId]);
 
   const updateSlotContentSize = useCallback((id: string, size: Size) => {
     setSlotContentSizes((previous) => {
@@ -196,111 +197,6 @@ export function ShellProvider({
 
       return new Map(previous).set(id, size);
     });
-  }, []);
-
-  const pinnedRef = useRef(false);
-  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeSlotRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    activeSlotRef.current = activeSlotId;
-  }, [activeSlotId]);
-
-  const clearOpenTimer = useCallback(() => {
-    if (openTimerRef.current !== null) {
-      clearTimeout(openTimerRef.current);
-      openTimerRef.current = null;
-    }
-  }, []);
-
-  const clearCloseTimer = useCallback(() => {
-    if (closeTimerRef.current !== null) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      clearOpenTimer();
-      clearCloseTimer();
-    };
-  }, [clearOpenTimer, clearCloseTimer]);
-
-  // Hover intent (debounced): a handle/region must be hovered briefly before it
-  // opens, and entering any slot region cancels a pending close.
-  const hoverEnter = useCallback(
-    (id: string) => {
-      clearCloseTimer();
-      if (activeSlotRef.current === id) {
-        clearOpenTimer();
-        return;
-      }
-      clearOpenTimer();
-      openTimerRef.current = setTimeout(() => {
-        openTimerRef.current = null;
-        pinnedRef.current = false;
-        setActiveSlotId(id);
-      }, HOVER_OPEN_DELAY_MS);
-    },
-    [clearOpenTimer, clearCloseTimer],
-  );
-
-  // Pointer left a slot region: cancel a pending open, and close after a grace
-  // period unless the slot is pinned (focused / click-opened).
-  const hoverLeave = useCallback(() => {
-    clearOpenTimer();
-    if (pinnedRef.current) {
-      return;
-    }
-    clearCloseTimer();
-    closeTimerRef.current = setTimeout(() => {
-      closeTimerRef.current = null;
-      setActiveSlotId(null);
-    }, HOVER_CLOSE_DELAY_MS);
-  }, [clearOpenTimer, clearCloseTimer]);
-
-  // Keyboard focus opens immediately (no hover debounce).
-  const focusOpen = useCallback(
-    (id: string) => {
-      clearOpenTimer();
-      clearCloseTimer();
-      setActiveSlotId(id);
-    },
-    [clearOpenTimer, clearCloseTimer],
-  );
-
-  const closeActive = useCallback(() => {
-    clearOpenTimer();
-    clearCloseTimer();
-    pinnedRef.current = false;
-    setActiveSlotId(null);
-  }, [clearOpenTimer, clearCloseTimer]);
-
-  // Click pins a slot open (or closes it if it's already the pinned slot).
-  const toggleSlot = useCallback(
-    (id: string) => {
-      clearOpenTimer();
-      clearCloseTimer();
-      if (activeSlotRef.current === id && pinnedRef.current) {
-        pinnedRef.current = false;
-        setActiveSlotId(null);
-        return;
-      }
-      pinnedRef.current = true;
-      setActiveSlotId(id);
-    },
-    [clearOpenTimer, clearCloseTimer],
-  );
-
-  const pinActive = useCallback(() => {
-    pinnedRef.current = true;
-    clearCloseTimer();
-  }, [clearCloseTimer]);
-
-  const unpinActive = useCallback(() => {
-    pinnedRef.current = false;
   }, []);
 
   const getAnchor = useCallback(
@@ -355,8 +251,6 @@ export function ShellProvider({
       bounds,
       viewport,
       activeSlotId,
-      animatedNotch,
-      animatedProgress,
       slots,
       slotContentSizes,
       shellSvgRef,
@@ -376,16 +270,16 @@ export function ShellProvider({
       getSlotExtent,
       getMinSlotExtent,
       updateSlotContentSize,
-      setAnimatedNotch,
-      setAnimatedProgress,
+      portalRef,
+      portalPaintRef,
+      setPortal,
+      clearPortal,
     }),
     [
       theme,
       bounds,
       viewport,
       activeSlotId,
-      animatedNotch,
-      animatedProgress,
       slots,
       slotContentSizes,
       overlayElement,
@@ -403,6 +297,8 @@ export function ShellProvider({
       getSlotExtent,
       getMinSlotExtent,
       updateSlotContentSize,
+      setPortal,
+      clearPortal,
     ],
   );
 

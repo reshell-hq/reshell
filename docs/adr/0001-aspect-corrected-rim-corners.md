@@ -6,5 +6,5 @@ We keep the `100×100` / `preserveAspectRatio="none"` coordinate system (and thu
 
 ## Considered Options
 
-- **Pixel-accurate viewBox** (`viewBox="0 0 W H"`, normal `preserveAspectRatio`): corners are naturally circular, but it discards the 1:1 %↔unit convenience and forces `handle-position.ts` / `coordinates.ts` to convert to pixels and recompute on resize. Rejected as too invasive.
+- **Pixel-accurate viewBox** (`viewBox="0 0 W H"`, normal `preserveAspectRatio`): corners are naturally circular, but it discards the 1:1 %↔unit convenience and forces the CSS builders in `lib/shell/css.ts` to convert to pixels and recompute on resize. Rejected as too invasive.
 - **Aspect-corrected radii** (chosen): contained to `notch.ts` plus threading live viewport dimensions to the path builder.

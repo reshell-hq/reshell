@@ -10,13 +10,23 @@ import type {
   SlotAnchor,
   SlotExtent,
 } from "./types";
-import { transformOriginForEdge } from "./viewbox-to-css";
 
 const VIEWBOX_SIZE = 100;
+const I = NOTCH_CONTENT_INSET_PX;
 
 /** ViewBox units map 1:1 to percentages since the viewBox is 100×100. */
 function pct(value: number): string {
   return `${value}%`;
+}
+
+/** `value%` shifted inward by the content inset. */
+function inset(value: number): string {
+  return `calc(${value}% + ${I}px)`;
+}
+
+/** `value%` shrunk by the inset on both ends. */
+function insetSpan(value: number): string {
+  return `calc(${value}% - ${2 * I}px)`;
 }
 
 export function anchorHitZoneStyle(
@@ -61,18 +71,6 @@ export function anchorHitZoneStyle(
         width: pct(depth),
       };
   }
-}
-
-const I = NOTCH_CONTENT_INSET_PX;
-
-/** `value%` shifted inward by the content inset. */
-function inset(value: number): string {
-  return `calc(${value}% + ${I}px)`;
-}
-
-/** `value%` shrunk by the inset on both ends. */
-function insetSpan(value: number): string {
-  return `calc(${value}% - ${2 * I}px)`;
 }
 
 /**
@@ -130,11 +128,28 @@ export function notchContentStyle(
 }
 
 /**
+ * CSS `transform-origin` that pins a revealed slot panel to its docking edge,
+ * so scaling the panel during reveal grows it outward from the notch anchor
+ * (e.g. a bottom slot grows upward from the bottom center).
+ */
+export function transformOriginForEdge(edge: ShellEdge): string {
+  switch (edge) {
+    case "bottom":
+      return "bottom center";
+    case "top":
+      return "top center";
+    case "left":
+      return "left center";
+    case "right":
+      return "right center";
+  }
+}
+
+/**
  * Positions the full-size content inside the clipped cavity and scales it by
  * the open progress, pinned to the docking edge. Because the cavity is also
  * `box × progress`, the scaled content exactly fills it — content starts tiny
- * inside the small notch and zooms to full size as it opens (see
- * docs/adr/0003). The content keeps its natural layout; only the paint scales.
+ * inside the small notch and zooms to full size as it opens (see ADR-0003).
  */
 export function revealContentStyle(
   edge: ShellEdge,
@@ -175,6 +190,52 @@ export function revealContentStyle(
         top: "50%",
         transform: `translateY(-50%) scale(${scale})`,
         transformOrigin,
+      };
+  }
+}
+
+/**
+ * Positions a slot handle entirely in the gutter (the margin between the rim
+ * and the screen edge), anchored by its rim-facing edge `offsetPx` away from
+ * the rim so it never overlaps the line. Uses the shell percentage coordinate
+ * space (% maps 1:1 to viewBox units); the `translate` pulls the handle fully
+ * off the rim along the edge normal and centers it along the edge.
+ */
+export function handleStyle(
+  bounds: ShellBounds,
+  anchor: SlotAnchor,
+  offsetPx: number,
+): CSSProperties {
+  const { edge, center } = anchor;
+
+  switch (edge) {
+    case "bottom":
+      return {
+        position: "fixed",
+        left: `${center}%`,
+        top: `calc(${bounds.bottom}% + ${offsetPx}px)`,
+        transform: "translate(-50%, 0)",
+      };
+    case "top":
+      return {
+        position: "fixed",
+        left: `${center}%`,
+        top: `calc(${bounds.top}% - ${offsetPx}px)`,
+        transform: "translate(-50%, -100%)",
+      };
+    case "left":
+      return {
+        position: "fixed",
+        top: `${center}%`,
+        left: `calc(${bounds.left}% - ${offsetPx}px)`,
+        transform: "translate(-100%, -50%)",
+      };
+    case "right":
+      return {
+        position: "fixed",
+        top: `${center}%`,
+        left: `calc(${bounds.right}% + ${offsetPx}px)`,
+        transform: "translate(0, -50%)",
       };
   }
 }

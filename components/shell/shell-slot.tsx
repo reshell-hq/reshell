@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import { anchorHitZoneStyle } from "@/lib/shell/coordinates";
+import { anchorHitZoneStyle } from "@/lib/shell/css";
 import type { ShellHandleComponent } from "@/lib/shell/theme";
 import { useShell, useShellEdge } from "./shell-context";
 import { ShellHandle } from "./shell-handle";

@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  useMemo,
+  useEffect,
+  useRef,
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { notchContentStyle, revealContentStyle } from "@/lib/shell/coordinates";
 import { useShell } from "./shell-context";
 
 /**
@@ -15,8 +15,12 @@ import { useShell } from "./shell-context";
  * portal. An outer layer is sized to the animated cavity and clips; an inner
  * layer holds the full-size content scaled by the open progress and pinned to
  * the docking edge, so it reads as zooming out of the notch as it opens. The
- * offscreen measurer in `Shell.Slot` stays the single size source; this is
- * purely the on-screen render.
+ * offscreen measurer in `Shell.Slot` stays the single size source.
+ *
+ * Mount/unmount is purely discrete (driven by `activeSlotId`); the per-frame
+ * positioning is written straight to these DOM nodes by the animation loop,
+ * which reads them via `setPortal`/`clearPortal` (see docs/adr/0006). The clip
+ * starts hidden and the loop reveals it once the notch reaches this edge.
  */
 export function ShellSlotPortal({
   slotId,
@@ -26,13 +30,11 @@ export function ShellSlotPortal({
   children: ReactNode;
 }) {
   const {
-    theme,
-    bounds,
     activeSlotId,
-    animatedNotch,
-    animatedProgress,
     overlayElement,
     getAnchor,
+    setPortal,
+    clearPortal,
     hoverEnter,
     hoverLeave,
     pinActive,
@@ -41,27 +43,22 @@ export function ShellSlotPortal({
   } = useShell();
 
   const isActive = activeSlotId === slotId;
-  const anchor = getAnchor(slotId);
+  const edge = getAnchor(slotId)?.edge ?? null;
+  const clipRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
 
-  const styles = useMemo(() => {
-    if (!isActive || !anchor || !animatedNotch) {
-      return null;
+  useEffect(() => {
+    if (!isActive || !edge || !overlayElement) {
+      return;
     }
-
-    // The pocket may be sliding (same-edge morph) so the center need not match
-    // the resting anchor; the edge and an open cavity are enough.
-    if (animatedNotch.edge !== anchor.edge || animatedNotch.depth <= 0) {
-      return null;
+    const clip = clipRef.current;
+    const inner = innerRef.current;
+    if (!clip || !inner) {
+      return;
     }
-
-    return {
-      clip: {
-        ...notchContentStyle(bounds, animatedNotch),
-        background: theme.panelColor,
-      },
-      inner: revealContentStyle(animatedNotch.edge, animatedProgress),
-    };
-  }, [isActive, anchor, animatedNotch, animatedProgress, bounds, theme.panelColor]);
+    setPortal({ slotId, edge, clip, inner });
+    return () => clearPortal(slotId);
+  }, [isActive, edge, overlayElement, slotId, setPortal, clearPortal]);
 
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // Focus moved outside this slot's content — release the pin and let the
@@ -80,22 +77,23 @@ export function ShellSlotPortal({
     }
   }
 
-  if (!styles || !overlayElement) {
+  if (!isActive || !overlayElement) {
     return null;
   }
 
   return createPortal(
     <div
+      ref={clipRef}
       data-shell-slot={slotId}
       className="pointer-events-auto box-border overflow-hidden"
-      style={styles.clip}
+      style={{ display: "none" }}
       onPointerEnter={() => hoverEnter(slotId)}
       onPointerLeave={hoverLeave}
       onFocusCapture={pinActive}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
-      <div style={styles.inner}>{children}</div>
+      <div ref={innerRef}>{children}</div>
     </div>,
     overlayElement,
   );

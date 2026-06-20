@@ -1,6 +1,17 @@
 import { NOTCH_ANIMATION } from "./constants";
-import { isSettled, lerp } from "./easing";
 import type { NotchSpec, ShellEdge, SlotExtent } from "./types";
+
+function lerp(current: number, target: number, factor: number): number {
+  return current + (target - current) * factor;
+}
+
+function isSettled(
+  current: number,
+  target: number,
+  threshold: number,
+): boolean {
+  return Math.abs(current - target) < threshold;
+}
 
 const ZERO_BOX: SlotExtent = { depth: 0, halfExtent: 0 };
 

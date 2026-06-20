@@ -2,7 +2,6 @@
 
 import { ShellProvider, useShell } from "./shell-context";
 import { ShellFrame } from "./shell-frame";
-import { ShellOverlay } from "./shell-overlay";
 import { ShellEdge } from "./shell-edge";
 import { ShellSlot } from "./shell-slot";
 import { ShellContent } from "./shell-content";
@@ -16,18 +15,18 @@ type ShellProps = {
   theme?: ShellThemeInput;
 };
 
-function ShellOverlayMount() {
-  const { setOverlayElement } = useShell();
-  return <ShellOverlay onMount={setOverlayElement} />;
-}
-
 /**
  * Var-bearing surface inside the provider. Its background paints the shell
  * (frame) colour across the whole viewport; the canvas fill and rim are layered
  * over it, and the theme CSS variables cascade to portaled overlay content.
+ *
+ * The trailing overlay is a fixed, full-viewport layer (above the frame stroke)
+ * that hosts portaled slot content; its element is reported via a callback ref
+ * so portals mount as soon as the target exists. Pointer-events are disabled on
+ * the layer; portaled panels re-enable them so the page stays interactive.
  */
 function ShellSurface({ children }: { children: ReactNode }) {
-  const { theme } = useShell();
+  const { theme, setOverlayElement } = useShell();
   return (
     <div
       className="relative flex min-h-full flex-1 flex-col"
@@ -35,7 +34,11 @@ function ShellSurface({ children }: { children: ReactNode }) {
     >
       <ShellFrame />
       {children}
-      <ShellOverlayMount />
+      <div
+        ref={setOverlayElement}
+        className="pointer-events-none fixed inset-0 z-[60]"
+        aria-live="polite"
+      />
     </div>
   );
 }

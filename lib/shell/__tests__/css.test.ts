@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SHELL_BOUNDS } from "../constants";
-import { handleStyle } from "../handle-position";
+import { handleStyle, transformOriginForEdge } from "../css";
 
 describe("handleStyle", () => {
   it("places a bottom-edge handle in the gutter below the rim", () => {
@@ -37,5 +37,23 @@ describe("handleStyle", () => {
       left: `calc(${SHELL_BOUNDS.right}% + 8px)`,
       transform: "translate(0, -50%)",
     });
+  });
+});
+
+describe("transformOriginForEdge", () => {
+  it("anchors bottom-edge reveals to the bottom so content grows upward", () => {
+    expect(transformOriginForEdge("bottom")).toBe("bottom center");
+  });
+
+  it("anchors top-edge reveals to the top so content grows downward", () => {
+    expect(transformOriginForEdge("top")).toBe("top center");
+  });
+
+  it("anchors left-edge reveals to the left so content grows rightward", () => {
+    expect(transformOriginForEdge("left")).toBe("left center");
+  });
+
+  it("anchors right-edge reveals to the right so content grows leftward", () => {
+    expect(transformOriginForEdge("right")).toBe("right center");
   });
 });

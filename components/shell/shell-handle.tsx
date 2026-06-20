@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import { HANDLE_OFFSET_PX } from "@/lib/shell/constants";
-import { handleStyle } from "@/lib/shell/handle-position";
+import { handleStyle } from "@/lib/shell/css";
 import type { ShellHandleComponent } from "@/lib/shell/theme";
 import { useShell } from "./shell-context";
 
