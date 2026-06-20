@@ -21,13 +21,17 @@ import {
   HOVER_OPEN_DELAY_MS,
   MIN_NOTCH_SIZE,
   SHELL_CORNER_RADIUS,
-  SHELL_GUTTER_PX,
 } from "@/lib/shell/constants";
 import { contentSizeToExtent } from "@/lib/shell/map-content-size";
 import {
   pixelsToViewBox,
   pixelsToViewBoxWithScreen,
 } from "@/lib/shell/scale";
+import {
+  DEFAULT_THEME_STYLE,
+  type ShellTheme,
+  type ShellThemeInput,
+} from "@/lib/shell/theme";
 import type {
   NotchSpec,
   ShellBounds,
@@ -37,8 +41,10 @@ import type {
   SlotExtent,
   SlotRegistration,
 } from "@/lib/shell/types";
+import { DefaultHandle } from "./default-handle";
 
 type ShellContextValue = {
+  theme: ShellTheme;
   bounds: ShellBounds;
   viewport: Size;
   activeSlotId: string | null;
@@ -70,9 +76,17 @@ type ShellContextValue = {
 const ShellContext = createContext<ShellContextValue | null>(null);
 
 type ShellProviderProps = {
-  gutterPx?: number;
+  theme?: ShellThemeInput;
   children: ReactNode;
 };
+
+function resolveTheme(input?: ShellThemeInput): ShellTheme {
+  return {
+    ...DEFAULT_THEME_STYLE,
+    Handle: DefaultHandle,
+    ...input,
+  };
+}
 
 function pixelSizeToViewBox(
   pixelSize: Size,
@@ -102,9 +116,10 @@ function extentFromPixelSize(
 }
 
 export function ShellProvider({
-  gutterPx = SHELL_GUTTER_PX,
+  theme: themeInput,
   children,
 }: ShellProviderProps) {
+  const theme = useMemo(() => resolveTheme(themeInput), [themeInput]);
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
   const [animatedNotch, setAnimatedNotch] = useState<NotchSpec | null>(null);
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -131,8 +146,8 @@ export function ShellProvider({
   }, []);
 
   const bounds = useMemo(
-    () => shellBoundsForViewport(viewport, gutterPx, SHELL_CORNER_RADIUS),
-    [viewport, gutterPx],
+    () => shellBoundsForViewport(viewport, theme.gutterPx, SHELL_CORNER_RADIUS),
+    [viewport, theme.gutterPx],
   );
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
@@ -321,6 +336,7 @@ export function ShellProvider({
 
   const value = useMemo(
     (): ShellContextValue => ({
+      theme,
       bounds,
       viewport,
       activeSlotId,
@@ -349,6 +365,7 @@ export function ShellProvider({
       setAnimatedProgress,
     }),
     [
+      theme,
       bounds,
       viewport,
       activeSlotId,
