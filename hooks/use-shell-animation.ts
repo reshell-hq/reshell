@@ -7,6 +7,7 @@ import { useShell } from "@/components/shell/shell-context";
 
 export function useShellAnimation(): {
   visiblePathRef: RefObject<SVGPathElement | null>;
+  fillPathRef: RefObject<SVGPathElement | null>;
 } {
   const {
     bounds,
@@ -18,6 +19,7 @@ export function useShellAnimation(): {
     setAnimatedProgress,
   } = useShell();
   const visiblePathRef = useRef<SVGPathElement>(null);
+  const fillPathRef = useRef<SVGPathElement>(null);
   const controllerRef = useRef(createShellNotchAnimationController());
   const reducedMotionRef = useRef(false);
 
@@ -73,10 +75,9 @@ export function useShellAnimation(): {
 
     const render = () => {
       const { notch, progress } = controller.getAnimatedFrame();
-      visiblePath.setAttribute(
-        "d",
-        buildShellPath(boundsRef.current, notch, viewportRef.current),
-      );
+      const d = buildShellPath(boundsRef.current, notch, viewportRef.current);
+      visiblePath.setAttribute("d", d);
+      fillPathRef.current?.setAttribute("d", d);
       setAnimatedNotch(notch);
       setAnimatedProgress(progress);
     };
@@ -96,8 +97,10 @@ export function useShellAnimation(): {
     }
 
     const { notch } = controllerRef.current.getAnimatedFrame();
-    visiblePath.setAttribute("d", buildShellPath(bounds, notch, viewport));
+    const d = buildShellPath(bounds, notch, viewport);
+    visiblePath.setAttribute("d", d);
+    fillPathRef.current?.setAttribute("d", d);
   }, [bounds, viewport]);
 
-  return { visiblePathRef };
+  return { visiblePathRef, fillPathRef };
 }

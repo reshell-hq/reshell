@@ -56,7 +56,6 @@ export const HOVER_CLOSE_DELAY_MS = 120;
 export const NOTCH_ANIMATION = {
   smoothing: 0.18,
   settleThreshold: 0.05,
-  visibleStrokeWidth: 1.5,
 } as const;
 
 export const SHELL_VIEWBOX = "0 0 100 100";

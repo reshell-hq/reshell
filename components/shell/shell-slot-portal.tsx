@@ -26,6 +26,7 @@ export function ShellSlotPortal({
   children: ReactNode;
 }) {
   const {
+    theme,
     bounds,
     activeSlotId,
     animatedNotch,
@@ -54,10 +55,13 @@ export function ShellSlotPortal({
     }
 
     return {
-      clip: notchContentStyle(bounds, animatedNotch),
+      clip: {
+        ...notchContentStyle(bounds, animatedNotch),
+        background: theme.panelColor,
+      },
       inner: revealContentStyle(animatedNotch.edge, animatedProgress),
     };
-  }, [isActive, anchor, animatedNotch, animatedProgress, bounds]);
+  }, [isActive, anchor, animatedNotch, animatedProgress, bounds, theme.panelColor]);
 
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // Focus moved outside this slot's content — release the pin and let the
