@@ -3,6 +3,7 @@
 import { Shell } from "@/components/shell";
 import { CommandBar } from "@/components/command-bar/command-bar";
 import { LeftEdgeGroups } from "@/components/edge-group/left-edge-groups";
+import { RightRimTools } from "@/components/internal-tools/right-rim-tools";
 import {
   LibraryProvider,
   useLibrary,
@@ -56,6 +57,7 @@ function HomeShell() {
   return (
     <Shell theme={themeToShellInput(active.theme)}>
       <LeftEdgeGroups library={library} />
+      <RightRimTools library={library} />
       <CommandBar library={library} textColor={active.theme.palette.text} />
 
       <Shell.Content>
@@ -73,7 +75,8 @@ function HomeShell() {
           </h1>
           <p className="max-w-md opacity-70">
             {active.name} workspace. Hover a handle on the left rim to open an
-            edge group; links open in a new tab.
+            edge group; links open in a new tab. Hover the right rim for the
+            pomodoro timer and focus tasks.
           </p>
         </main>
       </Shell.Content>

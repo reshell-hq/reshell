@@ -1,4 +1,7 @@
 import { rebalanceKeys } from "@/lib/fractional-order/fractional-order";
+import { createDefaultWorkspaceInternalTools } from "@/lib/internal-tools/pomodoro";
+import { addFocusTask } from "@/lib/internal-tools/tasks";
+import type { WorkspaceInternalTools } from "@/lib/internal-tools/types";
 import type { Theme } from "@/lib/theme/types";
 import { LIBRARY_SCHEMA_VERSION } from "./schema";
 import type { EdgeGroup, Library, Link, Workspace } from "./types";
@@ -59,11 +62,33 @@ function orderedEdgeGroups(groups: EdgeGroupInput[]): EdgeGroup[] {
   }));
 }
 
+type SeedTaskInput = { title: string; estimateMinutes?: number };
+
+/**
+ * Seed a per-workspace internal-tools record (CONTEXT: "Internal tool"): default
+ * pomodoro timer plus a couple of sample focus tasks so the right-rim tools feel
+ * alive on first run. Tasks differ per workspace to show state is per-workspace.
+ */
+function seedInternalTools(
+  idPrefix: string,
+  tasks: SeedTaskInput[],
+): WorkspaceInternalTools {
+  return tasks.reduce<WorkspaceInternalTools>(
+    (tools, task, index) =>
+      addFocusTask(tools, task.title, {
+        id: `${idPrefix}-task-${index}`,
+        estimateMinutes: task.estimateMinutes,
+      }),
+    createDefaultWorkspaceInternalTools(),
+  );
+}
+
 function workspace(
   id: string,
   name: string,
   theme: Theme,
   left: EdgeGroupInput[],
+  tasks: SeedTaskInput[],
 ): Workspace {
   return {
     id,
@@ -72,6 +97,7 @@ function workspace(
     placements: {
       edges: { left: orderedEdgeGroups(left), top: [], bottom: [] },
     },
+    internalTools: seedInternalTools(id, tasks),
   };
 }
 
@@ -139,6 +165,9 @@ export function createStarterLibrary(): Library {
       handleIcon: "✅",
       links: ["vitest", "playwright", "posthog"],
     },
+  ], [
+    { title: "Ship right-rim internal tools", estimateMinutes: 50 },
+    { title: "Review open pull requests", estimateMinutes: 25 },
   ]);
 
   const personal = workspace("personal", "Personal", personalTheme, [
@@ -166,7 +195,7 @@ export function createStarterLibrary(): Library {
       handleIcon: "🌙",
       links: ["github", "cloudflare", "railway", "prisma", "stripe"],
     },
-  ]);
+  ], [{ title: "Read for 30 minutes", estimateMinutes: 30 }]);
 
   return {
     schemaVersion: LIBRARY_SCHEMA_VERSION,

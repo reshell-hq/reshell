@@ -1,12 +1,13 @@
 import type { Theme } from "@/lib/theme/types";
 import type { FractionalOrderKey } from "@/lib/fractional-order/fractional-order";
+import type { WorkspaceInternalTools } from "@/lib/internal-tools/types";
 
 /**
  * The library data model (CONTEXT: "Library") — a single user's complete
  * Reshell dataset, persisted in IndexedDB. This is the slice ported so far:
- * catalog, workspaces, themes, and edge-group placements. Per-workspace
- * internal tools, canvas widgets, focus radio, and ICS feed attach in their own
- * rewrite slices (issues 07/09/10/11).
+ * catalog, workspaces, themes, edge-group placements, and per-workspace internal
+ * tools (issue 07). Canvas widgets, focus radio, and ICS feed attach in their
+ * own rewrite slices (issues 09/10/11).
  */
 
 /** A single bookmark (CONTEXT: "Link"). The atomic unit of the library. */
@@ -49,6 +50,13 @@ export type Workspace = {
   name: string;
   theme: Theme;
   placements: WorkspacePlacements;
+  /**
+   * Per-workspace internal-tools state — pomodoro timer + focus tasks (CONTEXT:
+   * "Internal tool"). Seeded by the starter template; optional so a library
+   * saved before this field still loads (resolved via
+   * `resolveWorkspaceInternalTools`).
+   */
+  internalTools?: WorkspaceInternalTools;
 };
 
 export type ShortcutBindings = {
