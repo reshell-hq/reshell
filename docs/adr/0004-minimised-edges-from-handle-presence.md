@@ -1,0 +1,5 @@
+# Minimised edges inferred from handle presence
+
+The gutter is no longer a single uniform inset: it is computed per-edge. An edge whose slots provide no *handle* is *minimised* — its gutter shrinks to a sliver (`minimisedGutterPx`, default ~10px) so the rim hugs that screen edge and content reclaims the space; an edge with at least one handle keeps the full `gutterPx`. The gutter exists to hold handles, so an edge with none has nothing to hold.
+
+This couples a visual dimension (gutter size) to slot configuration (whether any slot declares a handle) rather than to an explicit per-edge prop, which a future reader might try to "simplify" into a uniform gutter or an explicit flag. The coupling is deliberate: it keeps the common case zero-config. A global `theme.Handle` only restyles handles that exist; it does not force handles onto slots, so it does not defeat minimisation. Handleless slots remain openable via their hit-zone regardless of gutter size. The transition snaps (the animation controller tweens the notch, not the rim rectangle), because minimised state is config-driven and rarely changes at runtime.
