@@ -4,11 +4,28 @@ import { useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
 import { SearchSlot } from "@/components/shell/search-slot";
 import type { ShellHandleRenderProps } from "@/lib/shell/theme";
+import { canvasBackgroundStyle, themeToShellInput } from "@/lib/theme/shell-theme";
+import type { Theme } from "@/lib/theme/types";
 import {
   NavigationSlot,
   NotificationsSlot,
   SettingsSlot,
 } from "./demo-slots";
+
+/**
+ * A sample workspace theme, fed through the domain → shell adapter to exercise
+ * the mapping (palette, shell border, canvas background) on the live shell.
+ */
+const DEMO_THEME: Theme = {
+  palette: {
+    background: "#1c1917",
+    surface: "#292524",
+    text: "#fafaf9",
+    accent: "#f59e0b",
+  },
+  shellBorderColor: "#f59e0b",
+  borderRadius: 20,
+};
 
 /**
  * Per-slot handle override: a headless component gets all interaction wiring as
@@ -111,12 +128,7 @@ export default function Home() {
   );
 
   return (
-    <Shell
-      theme={{
-        shellColor: "var(--muted)",
-        canvasColor: "var(--background)",
-      }}
-    >
+    <Shell theme={themeToShellInput(DEMO_THEME)}>
       <Shell.Edge side="top">
         <Shell.Slot
           id="notifications"
@@ -161,13 +173,20 @@ export default function Home() {
       </Shell.Edge>
 
       <Shell.Content>
-        <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+        <main
+          className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center"
+          style={{
+            ...canvasBackgroundStyle(DEMO_THEME),
+            color: DEMO_THEME.palette.text,
+          }}
+        >
           <h1 className="text-3xl font-semibold tracking-tight">reshell</h1>
-          <p className="max-w-md text-zinc-500">
+          <p className="max-w-md opacity-70">
             Hover the handles around the rim to open slots. The top, left, and
             right edges carry handles (settings uses a custom square handle); the
             bottom search edge has none, so it minimises to a sliver until you
-            hover the rim. The shell frame and canvas are themed.
+            hover the rim. The shell frame, border, and canvas are driven by a
+            domain workspace theme via <code>themeToShellInput</code>.
           </p>
         </main>
       </Shell.Content>
