@@ -1,6 +1,7 @@
 "use client";
 
 import { Shell } from "@/components/shell";
+import { CommandBar } from "@/components/command-bar/command-bar";
 import { LeftEdgeGroups } from "@/components/edge-group/left-edge-groups";
 import {
   LibraryProvider,
@@ -16,8 +17,8 @@ import {
  * Reads the library from the injected store (issue 03), themes the shell by the
  * active workspace (issue 02), and surfaces each left-rim edge group as a
  * composed `Shell.Slot`: hover/pin a handle to open its edge flyout; links open
- * in new tabs. The command bar, control center, and internal tools land in
- * later slices.
+ * in new tabs. The bottom-rim command bar is composed alongside (issue 05); the
+ * control center and internal tools land in later slices.
  */
 function HomeShell() {
   const { status, library, error } = useLibrary();
@@ -55,6 +56,7 @@ function HomeShell() {
   return (
     <Shell theme={themeToShellInput(active.theme)}>
       <LeftEdgeGroups library={library} />
+      <CommandBar library={library} textColor={active.theme.palette.text} />
 
       <Shell.Content>
         <main
