@@ -44,8 +44,9 @@ export function LibraryProvider({ store, children }: LibraryProviderProps) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // Status starts as "loading"; the store is locked on first render so this
+    // effect runs once. The async callbacks below flip it to ready/error.
     let cancelled = false;
-    setStatus("loading");
     loadOrSeedLibrary(resolvedStore)
       .then((loaded) => {
         if (!cancelled) {
