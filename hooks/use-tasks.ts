@@ -110,7 +110,7 @@ export function useTasks(): UseTasks {
       if (!task) {
         return;
       }
-      timer.applyTaskTimer(startFocusOnTaskLib(timer.state, id));
+      timer.applyTaskTimer(startFocusOnTaskLib(id));
     },
     [tasks, timer],
   );
@@ -121,7 +121,7 @@ export function useTasks(): UseTasks {
       if (!task) {
         return;
       }
-      const patch = startCountdownFromEstimateLib(timer.state, task);
+      const patch = startCountdownFromEstimateLib(task);
       if (patch) {
         timer.applyTaskTimer(patch);
       }

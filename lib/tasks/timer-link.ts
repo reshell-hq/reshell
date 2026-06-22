@@ -3,21 +3,14 @@ import type { FocusTask } from "./types";
 
 /**
  * Pure descriptors linking a task to the timer tool (CONTEXT: "Tool"). Each
- * returns a `Partial<TimerState>` patch to merge over the current timer; the
- * `useTimer` seam applies it (and supplies `new Date()` for a launched
- * countdown), so this stays clock-free and unit-testable. Zero React/DOM deps —
- * the portable core (ADR-0009). Kept stable for plan 014's focus-tasks widget.
- *
- * The leading `timer` argument is the current state these patches describe
- * against; it is not read today (the patch is absolute), but the signature
- * mirrors the timer lib and reserves room without a later breaking change.
+ * returns an absolute `Partial<TimerState>` patch to merge over the current
+ * timer; the `useTimer` seam applies it (and supplies `new Date()` for a
+ * launched countdown), so this stays clock-free and unit-testable. Zero
+ * React/DOM deps — the portable core (ADR-0009).
  */
 
 /** Arm a focus session on a task: pomodoro mode, task active, not yet running. */
-export function startFocusOnTask(
-  timer: TimerState,
-  taskId: string,
-): Partial<TimerState> {
+export function startFocusOnTask(taskId: string): Partial<TimerState> {
   return {
     activeTaskId: taskId,
     mode: "pomodoro",
@@ -33,7 +26,6 @@ export function startFocusOnTask(
  * estimate (so callers disable the action). The hook launches it on apply.
  */
 export function startCountdownFromEstimate(
-  timer: TimerState,
   task: FocusTask,
 ): Partial<TimerState> | null {
   if (

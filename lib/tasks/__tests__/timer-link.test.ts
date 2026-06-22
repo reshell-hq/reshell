@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultTimerState } from "@/lib/timer";
 import { startCountdownFromEstimate, startFocusOnTask } from "../timer-link";
 import type { FocusTask } from "../types";
 
@@ -13,7 +12,7 @@ const baseTask: FocusTask = {
 
 describe("startFocusOnTask", () => {
   it("arms the task in pomodoro mode without running the timer", () => {
-    const patch = startFocusOnTask(createDefaultTimerState(), "task-1");
+    const patch = startFocusOnTask("task-1");
     expect(patch).toEqual({
       activeTaskId: "task-1",
       mode: "pomodoro",
@@ -27,7 +26,7 @@ describe("startFocusOnTask", () => {
 
 describe("startCountdownFromEstimate", () => {
   it("arms a countdown from the estimate", () => {
-    const patch = startCountdownFromEstimate(createDefaultTimerState(), {
+    const patch = startCountdownFromEstimate({
       ...baseTask,
       estimateMinutes: 25,
     });
@@ -40,11 +39,9 @@ describe("startCountdownFromEstimate", () => {
   });
 
   it("returns null when the task has no usable estimate", () => {
+    expect(startCountdownFromEstimate(baseTask)).toBeNull();
     expect(
-      startCountdownFromEstimate(createDefaultTimerState(), baseTask),
-    ).toBeNull();
-    expect(
-      startCountdownFromEstimate(createDefaultTimerState(), {
+      startCountdownFromEstimate({
         ...baseTask,
         estimateMinutes: 0,
       }),
