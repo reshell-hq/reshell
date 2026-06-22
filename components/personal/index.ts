@@ -4,3 +4,4 @@ export { CommandCenterSlot } from "./command-center-slot";
 export { TasksSlot } from "./tasks-slot";
 export { TimerSlot } from "./timer-slot";
 export { WorkspaceEdges } from "./workspace-edges";
+export { YoutubePlayer } from "./youtube-player";
