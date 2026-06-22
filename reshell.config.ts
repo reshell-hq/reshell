@@ -45,19 +45,22 @@ export const reshellConfig = {
       scene: "default",
       widgets: { clock: true, welcome: true, quote: true },
       bookmarks: {
+        // `icon` resolves image URL → curated named glyph → emoji/literal. Named
+        // glyphs (e.g. "github") animate on hover; bookmarks with no icon fall
+        // back to their favicon. Mix freely — see lib/icons/README.md for names.
         left: [
           {
             name: "Dev",
-            icon: "🛠️",
+            icon: "code",
             links: [
-              { url: "https://github.com", title: "GitHub", icon: "🐙" },
+              { url: "https://github.com", title: "GitHub", icon: "github" },
               { url: "https://stackoverflow.com" },
               { url: "https://developer.mozilla.org", title: "MDN" },
             ],
           },
           {
             name: "Docs",
-            icon: "📚",
+            icon: "book",
             links: [
               { url: "https://nextjs.org/docs", title: "Next.js" },
               { url: "https://react.dev" },
@@ -68,7 +71,7 @@ export const reshellConfig = {
         top: [
           {
             name: "Mail",
-            icon: "✉️",
+            icon: "mail",
             links: [
               { url: "https://mail.google.com", title: "Gmail" },
               { url: "https://calendar.google.com", title: "Calendar" },
@@ -86,7 +89,7 @@ export const reshellConfig = {
         left: [
           {
             name: "Read",
-            icon: "📖",
+            icon: "book",
             links: [
               { url: "https://news.ycombinator.com", title: "Hacker News" },
               { url: "https://www.reddit.com" },
@@ -96,6 +99,7 @@ export const reshellConfig = {
         bottom: [
           {
             name: "Watch",
+            // Emoji still wins over a named key — overrides keep working.
             icon: "📺",
             links: [
               { url: "https://youtube.com", title: "YouTube" },
