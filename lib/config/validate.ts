@@ -44,6 +44,14 @@ export const canvasWidgetIdSchema = z.enum([
   "focusTasks",
 ]);
 
+/**
+ * The full built-in scene / canvas-widget sets, derived from the schema so they
+ * never drift from the types (CONTEXT: both sets are fixed and built-in). The
+ * command center iterates these to render every scene choice and widget toggle.
+ */
+export const SCENE_NAMES = sceneNameSchema.options;
+export const CANVAS_WIDGET_IDS = canvasWidgetIdSchema.options;
+
 export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().optional(),

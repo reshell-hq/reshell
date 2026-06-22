@@ -1,7 +1,7 @@
 "use client";
 
 import { Shell } from "@/components/shell";
-import { WorkspaceEdges } from "@/components/personal";
+import { CommandCenterSlot, WorkspaceEdges } from "@/components/personal";
 import { ReshellProvider, useReshellState } from "@/hooks/use-reshell-state";
 import reshellConfig from "@/reshell.config";
 
@@ -27,6 +27,7 @@ function HomeStation() {
         canvasColor: "var(--background)",
       }}
     >
+      <CommandCenterSlot />
       <WorkspaceEdges />
       <Shell.Content>
         <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">

@@ -9,4 +9,9 @@ export type {
   ShortcutAction,
   WorkspaceConfig,
 } from "./types";
-export { reshellConfigSchema, validateConfig } from "./validate";
+export {
+  CANVAS_WIDGET_IDS,
+  reshellConfigSchema,
+  SCENE_NAMES,
+  validateConfig,
+} from "./validate";
