@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { Shell } from "@/components/shell";
 import { useShell } from "@/components/shell/shell-context";
 import { Icon } from "@/components/icon";
+import { useGlobalTypeahead } from "@/hooks/use-global-typeahead";
 import { useReshellState } from "@/hooks/use-reshell-state";
 import {
   buildCommandIndex,
@@ -46,10 +47,21 @@ const KIND_LABELS: Record<CommandKind, string> = {
 export function CommandBarSlot() {
   const { config, activeWorkspace, activeWorkspaceId, setActiveWorkspace, patchOverride, resetWorkspace } =
     useReshellState();
-  const { closeActive } = useShell();
+  const { closeActive, focusOpen } = useShell();
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
+
+  // Type-to-open: a bare printable key (no field focused) opens the bar seeded
+  // with that char. Appending — not replacing — covers the brief gap between
+  // opening and the input gaining focus, so a fast second key is not dropped.
+  // Wired once here (the wrapper renders once), never in the twice-rendered
+  // panel. Once the input is focused the hook's guard stands down.
+  useGlobalTypeahead((char) => {
+    setQuery((previous) => previous + char);
+    setSelected(0);
+    focusOpen(SLOT_ID);
+  });
 
   const index = useMemo(
     () => buildCommandIndex({ config, activeWorkspace, activeWorkspaceId }),
