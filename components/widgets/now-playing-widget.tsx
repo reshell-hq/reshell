@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/icon";
 import { useMusic } from "@/hooks/use-music";
 
 /**
@@ -17,9 +18,7 @@ export function NowPlayingWidget() {
 
   return (
     <div className="flex items-center gap-2.5">
-      <span aria-hidden className="text-base leading-none">
-        {station.icon ?? "♪"}
-      </span>
+      <Icon value={station.icon} size={16} fallback="♪" className="leading-none" />
       <span
         aria-hidden
         className="size-1.5 animate-pulse rounded-full"
