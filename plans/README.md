@@ -58,7 +58,9 @@ See `CONTEXT.md` (Personal edition glossary) and `docs/adr/0007`, `docs/adr/0008
 | 014 | Scenes + canvas widgets | P1 | L | 011, 012, 013 | DONE |
 | 015 | Icon system + curated animated pack | P2 | M | 008 | DONE |
 | 016 | Modularity & export-surface audit | P1 | M | 007–015 | DONE |
-| 017 | Final quality pass (improve · ponytail-audit · impeccable polish) | P1 | M | 007–016 | TODO |
+| 017 | Final quality pass (improve · ponytail-audit · impeccable polish) | P1 | M | 007–016 | DONE |
+| 018 | Cross-edge handle-collision avoidance (shell geometry) | P3 | M | 017 | TODO |
+| 019 | Component & interaction test coverage | P2 | M | 017 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED | REJECTED
 
@@ -71,7 +73,10 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED | REJECTED
 - **014** depends on **011/012/013** because the `nowPlaying`, `pomodoro`, and `focusTasks` canvas widgets read those tools' state. It introduces the Scene components and wires the command-center scene/widget toggles.
 - **015** depends on **008**: it adds the curated animated icon pack and named-icon resolution. Plan 008 ships emoji+image icons behind an icon-resolver seam (`lib/icons/`); 015 fills that seam with the pack and retrofits handles/widgets/command center.
 - **016** hardens the public export surface, verifies the styling/modularity rules below were followed, and proves the repo imports cleanly as a submodule.
-- **017** is the final holistic quality pass: a whole-repo `improve deep` audit, a `ponytail-audit` over-engineering sweep, an `impeccable polish/audit` of the finished UI, and a `ponytail-debt` ledger of deferred shortcuts. Run it last, after 016.
+- **017** is the final holistic quality pass: a whole-repo `improve deep` audit, a `ponytail-audit` over-engineering sweep, an `impeccable polish/audit` of the finished UI, and a `ponytail-debt` ledger of deferred shortcuts (`plans/ponytail-debt.md`). Run it last, after 016.
+- **018** and **019** are the genuinely-larger items surfaced by the plan-017 audits, deferred rather than rushed into the final pass:
+  - **018** — cross-edge handle-collision avoidance in the shell geometry, so a `top` bookmark group's handle no longer overlaps the command-center handle (today the shell distributes anchors *within* one edge, not across the separate `Shell.Edge`s; the starter config dodges this by keeping groups off `top`). See `components/personal/workspace-edges.tsx` and the ponytail-debt ledger (#14).
+  - **019** — React component + interaction test coverage (slots, widgets, the provider/override seam). The pure-logic core is well unit-tested (`lib/**`), but the React layer has no automated coverage yet; a release-ready submodule should add it.
 
 ## Conventions (apply to every plan 007+)
 
