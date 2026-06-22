@@ -60,7 +60,7 @@ function MusicPanel({ music }: { music: UseMusic }) {
   return (
     <section
       aria-label="Music"
-      className="flex w-72 flex-col gap-4 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl"
+      className="flex w-72 max-w-[calc(100vw-2rem)] flex-col gap-4 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl"
     >
       <header className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
