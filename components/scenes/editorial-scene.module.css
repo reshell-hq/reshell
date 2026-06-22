@@ -1,0 +1,32 @@
+/* Colocated scene styling (ADR-0009). The pull-quote rules target the quote
+   widget's semantic <blockquote>/<figcaption> elements (not its classes) so the
+   scene owns its typographic emphasis without reaching into widget internals.
+   Reduced motion is collapsed globally in globals.css. */
+
+.canvas {
+  animation: editorial-reveal 240ms ease-out both;
+}
+
+@keyframes editorial-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pullquote blockquote {
+  font-size: clamp(1.6rem, 3.5vw, 2.75rem);
+  line-height: 1.12;
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+
+.pullquote figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

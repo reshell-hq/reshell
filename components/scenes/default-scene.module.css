@@ -1,0 +1,18 @@
+/* Colocated scene styling (ADR-0009) — keyframes only; palette/layout live as
+   the ShellTheme + Tailwind utilities in default-scene.tsx. Reduced motion is
+   collapsed globally in globals.css. */
+
+.canvas {
+  animation: default-rise 220ms ease-out both;
+}
+
+@keyframes default-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

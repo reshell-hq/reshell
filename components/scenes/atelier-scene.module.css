@@ -1,0 +1,85 @@
+/* Colocated scene styling (ADR-0009): the pinned-card collage that defines the
+   atelier scene — paper grain, per-card tilt, and a hover straighten/lift.
+   Palette lives in the tsx. Hover transform durations collapse under reduced
+   motion via the global rule in globals.css; the static tilt remains. */
+
+.canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Faint warm paper grain — purely decorative, never intercepts pointer. */
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+      45deg,
+      color-mix(in oklab, currentColor 3%, transparent) 0 1px,
+      transparent 1px 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, currentColor 2%, transparent) 0 1px,
+      transparent 1px 9px
+    );
+}
+
+.collage {
+  animation: atelier-settle 260ms ease-out both;
+}
+
+.card {
+  position: relative;
+  background: var(--atelier-card);
+  border: 1px solid color-mix(in oklab, currentColor 14%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow:
+    0 1px 0 color-mix(in oklab, currentColor 6%, transparent),
+    0 14px 34px -16px color-mix(in oklab, currentColor 45%, transparent);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.card:empty {
+  display: none;
+}
+
+/* Pinned look: a small, varied tilt per card. */
+.card:nth-child(3n + 1) {
+  transform: rotate(-2deg);
+}
+.card:nth-child(3n + 2) {
+  transform: rotate(1.5deg);
+}
+.card:nth-child(3n) {
+  transform: rotate(-0.75deg);
+}
+
+.card:hover {
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, currentColor 6%, transparent),
+    0 22px 46px -16px color-mix(in oklab, currentColor 55%, transparent);
+}
+
+/* The clock anchors the wall as the largest pinned piece. */
+.cardLarge {
+  flex-basis: 100%;
+  text-align: center;
+}
+
+@keyframes atelier-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

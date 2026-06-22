@@ -1,0 +1,73 @@
+/* Colocated scene styling (ADR-0009): the horizon band, glow, and pulse that
+   give the meridian scene its identity. Palette/layout live in the tsx. The
+   infinite pulse is collapsed to a static glow under reduced motion via the
+   global rule in globals.css. */
+
+.canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+.content {
+  animation: meridian-rise 260ms ease-out both;
+}
+
+/* The horizon: a thin accent band the clock sits on. */
+.horizon {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--scene-accent),
+    transparent
+  );
+  opacity: 0.65;
+  z-index: -1;
+}
+
+/* Soft twilight glow centred on the meridian. */
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(72vw, 42rem);
+  height: min(42vh, 24rem);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--scene-accent) 32%, transparent),
+    transparent
+  );
+  z-index: -1;
+  animation: meridian-pulse 7s ease-in-out infinite;
+}
+
+.clockGlow {
+  text-shadow: 0 0 30px color-mix(in oklab, var(--scene-accent) 45%, transparent);
+}
+
+@keyframes meridian-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes meridian-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
