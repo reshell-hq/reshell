@@ -4,6 +4,7 @@ import { Shell } from "@/components/shell";
 import {
   CommandBarSlot,
   CommandCenterSlot,
+  TimerSlot,
   WorkspaceEdges,
 } from "@/components/personal";
 import { ReshellProvider, useReshellState } from "@/hooks/use-reshell-state";
@@ -33,6 +34,7 @@ function HomeStation() {
     >
       <CommandCenterSlot />
       <CommandBarSlot />
+      <TimerSlot />
       <WorkspaceEdges />
       <Shell.Content>
         <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">

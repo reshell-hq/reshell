@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useClock } from "@/hooks/use-clock";
 import { useReshellState } from "@/hooks/use-reshell-state";
+import { useTimer } from "@/hooks/use-timer";
+import { formatModeLabel, formatTimerSeconds } from "@/lib/timer";
 import {
   CANVAS_WIDGET_IDS,
   SCENE_NAMES,
@@ -146,11 +148,11 @@ function CommandCenterPanel() {
       </Section>
 
       <footer className="flex items-center justify-between gap-3 border-t border-border pt-3">
-        {/* ponytail: static placeholders. Plans 011/013 swap these for live
-            timer + now-playing state read from those tools' hooks. */}
+        {/* ponytail: now-playing stays a static placeholder until plan 013
+            wires the music tool; the timer row reads live state below. */}
         <dl className="flex flex-col gap-0.5 text-xs">
           <AmbientRow label="Now playing" value="Nothing playing" />
-          <AmbientRow label="Timer" value="No timer running" />
+          <TimerAmbientRow />
         </dl>
         <Button
           type="button"
@@ -183,6 +185,15 @@ function AmbientRow({ label, value }: { label: string; value: string }) {
       <dd className="text-foreground/70">{value}</dd>
     </div>
   );
+}
+
+/** Live ambient timer status, read from the timer tool (plan 011). */
+function TimerAmbientRow() {
+  const { state, remaining } = useTimer();
+  const value = state.running
+    ? `${formatModeLabel(state)} · ${formatTimerSeconds(remaining)}`
+    : "No timer running";
+  return <AmbientRow label="Timer" value={value} />;
 }
 
 function GridGlyph() {

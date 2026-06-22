@@ -6,6 +6,7 @@ import { useShell } from "@/components/shell/shell-context";
 import { Icon } from "@/components/icon";
 import { useGlobalTypeahead } from "@/hooks/use-global-typeahead";
 import { useReshellState } from "@/hooks/use-reshell-state";
+import { useTimer } from "@/hooks/use-timer";
 import {
   buildCommandIndex,
   parseQuery,
@@ -47,6 +48,7 @@ const KIND_LABELS: Record<CommandKind, string> = {
 export function CommandBarSlot() {
   const { config, activeWorkspace, activeWorkspaceId, setActiveWorkspace, patchOverride, resetWorkspace } =
     useReshellState();
+  const timer = useTimer();
   const { closeActive, focusOpen } = useShell();
 
   const [query, setQuery] = useState("");
@@ -98,10 +100,16 @@ export function CommandBarSlot() {
         resetWorkspace(run.workspaceId);
         break;
       case "timer":
+        if (run.action === "start") {
+          timer.start();
+        } else {
+          timer.pause();
+        }
+        break;
       case "task":
       case "music":
-        // ponytail: the timer/tasks/music tools land in plans 011/012/013;
-        // their verbs are indexed already but dispatch is a no-op until then.
+        // ponytail: the tasks/music tools land in plans 012/013; their verbs
+        // are indexed already but dispatch is a no-op until then.
         break;
     }
     reset();

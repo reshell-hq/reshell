@@ -52,6 +52,7 @@ export type UseTimer = {
   reset: () => void;
   setMode: (mode: TimerMode) => void;
   setSplit: (splitId: string) => void;
+  setCountdownMinutes: (minutes: number) => void;
   toggleChime: () => void;
 };
 
@@ -139,6 +140,14 @@ export function useTimer(): UseTimer {
     [state, writeTimer],
   );
 
+  // Pick a countdown duration (re-arms idle so `start` uses it). Plan 012 will
+  // route a task estimate through the lib `startCountdown(state, minutes, now)`.
+  const setCountdownMinutes = useCallback(
+    (minutes: number) =>
+      writeTimer({ ...state, mode: "countdown", countdownMinutes: minutes, running: false, endsAt: null }),
+    [state, writeTimer],
+  );
+
   const toggleChime = useCallback(
     () => writeTimer({ ...state, chimeEnabled: !state.chimeEnabled }),
     [state, writeTimer],
@@ -154,6 +163,7 @@ export function useTimer(): UseTimer {
     reset,
     setMode,
     setSplit,
+    setCountdownMinutes,
     toggleChime,
   };
 }
