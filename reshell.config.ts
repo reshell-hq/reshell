@@ -48,6 +48,12 @@ export const reshellConfig = {
         // `icon` resolves image URL → curated named glyph → emoji/literal. Named
         // glyphs (e.g. "github") animate on hover; bookmarks with no icon fall
         // back to their favicon. Mix freely — see lib/icons/README.md for names.
+        // The `top` edge is reserved for the command center (a single top-edge
+        // fixture); placing bookmark groups there too lands both handles at
+        // top-centre, since the shell distributes anchors within one edge, not
+        // across the separate `Shell.Edge`s the command center and groups mount
+        // (see AGENTS.md → "Edge reservations"). Keep bookmark groups on
+        // left/bottom; `right` is reserved for tools.
         left: [
           {
             name: "Dev",
@@ -67,8 +73,6 @@ export const reshellConfig = {
               { url: "https://tailwindcss.com" },
             ],
           },
-        ],
-        top: [
           {
             name: "Mail",
             icon: "mail",

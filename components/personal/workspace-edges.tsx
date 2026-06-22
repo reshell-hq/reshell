@@ -8,6 +8,15 @@ import { BookmarkGroupSlot } from "./bookmark-group-slot";
 
 // Bookmark groups live on these edges only; `right` is reserved for tools
 // (plans 011–013) and the config schema omits it.
+//
+// ponytail: `top` is also the command center's edge. Because the command center
+// and these groups each mount their own `<Shell.Edge side="top">`, and the
+// shell distributes anchors *within* one edge (not across edges), a top
+// bookmark group's handle collides with the command-center handle at
+// top-centre. The starter config keeps bookmark groups off `top` and AGENTS.md
+// documents the reservation; `top` stays in the union so a deliberate config
+// still renders. Upgrade path (deferred): merge same-edge `Shell.Edge`s or add
+// cross-edge handle-collision avoidance in the shell geometry (plan 017+).
 const BOOKMARK_EDGES = ["left", "top", "bottom"] as const satisfies ShellEdge[];
 
 /**
