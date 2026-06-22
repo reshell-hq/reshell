@@ -1,6 +1,7 @@
 "use client";
 
 import { Shell } from "@/components/shell";
+import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useMusic, type UseMusic } from "@/hooks/use-music";
@@ -35,9 +36,9 @@ export function MusicSlot() {
   );
 }
 
-/** Gutter affordance: a music-note glyph, tinted when something is playing. */
+/** Gutter affordance: a headphones glyph, tinted when something is playing. */
 function MusicHandle({ playing }: { playing: boolean }) {
-  return <NoteGlyph className={playing ? "text-primary" : undefined} />;
+  return <Icon value="headphones" size={14} className={playing ? "text-primary" : undefined} />;
 }
 
 function MusicPanel({ music }: { music: UseMusic }) {
@@ -87,8 +88,8 @@ function MusicPanel({ music }: { music: UseMusic }) {
                         : "text-foreground hover:bg-accent/60"
                     }`}
                   >
-                    <span aria-hidden className="w-4 shrink-0 text-center">
-                      {item.icon ?? "♪"}
+                    <span aria-hidden className="flex w-4 shrink-0 justify-center">
+                      <Icon value={item.icon} size={16} fallback="♪" />
                     </span>
                     <span className="flex-1 truncate">{item.label}</span>
                     {active && isPlaying ? (
@@ -168,25 +169,6 @@ function MusicPanel({ music }: { music: UseMusic }) {
         </p>
       )}
     </section>
-  );
-}
-
-function NoteGlyph({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 16 16"
-      className={`h-3.5 w-3.5 ${className ?? ""}`}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 12.5V4l7-1.5V11" />
-      <circle cx="4.25" cy="12.5" r="1.75" />
-      <circle cx="11.25" cy="11" r="1.75" />
-    </svg>
   );
 }
 

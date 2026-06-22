@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Shell } from "@/components/shell";
+import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useClock } from "@/hooks/use-clock";
@@ -50,7 +51,7 @@ export function CommandCenterSlot() {
 
   return (
     <Shell.Edge side="top">
-      <Shell.Slot id={SLOT_ID} handleLabel="Command center" handle={<GridGlyph />}>
+      <Shell.Slot id={SLOT_ID} handleLabel="Command center" handle={<Icon value="grid" size={16} />}>
         <CommandCenterPanel />
       </Shell.Slot>
     </Shell.Edge>
@@ -200,16 +201,6 @@ function TimerAmbientRow() {
     ? `${formatModeLabel(state)} · ${formatTimerSeconds(remaining)}`
     : "No timer running";
   return <AmbientRow label="Timer" value={value} />;
-}
-
-function GridGlyph() {
-  return (
-    <span aria-hidden className="grid grid-cols-2 gap-[3px]">
-      {Array.from({ length: 4 }, (_, index) => (
-        <span key={index} className="h-1 w-1 rounded-[1px] bg-current" />
-      ))}
-    </span>
-  );
 }
 
 /**

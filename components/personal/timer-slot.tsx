@@ -211,6 +211,10 @@ function Picker({ label, children }: { label: string; children: React.ReactNode 
   );
 }
 
+// ponytail: kept as a hand-drawn SVG — the curated pack (plan 015) ships no
+// clock/timer/hourglass glyph, and a wrong-meaning substitute would read worse
+// than this on-brand clock. Upgrade path: route through <Icon value="timer">
+// once the registry gains a clock (one import + one entry in lib/icons).
 function TimerGlyph() {
   return (
     <svg

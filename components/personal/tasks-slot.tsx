@@ -2,6 +2,7 @@
 
 import { useRef, type FormEvent } from "react";
 import { Shell } from "@/components/shell";
+import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,7 @@ export function TasksSlot() {
 function TasksHandle({ count }: { count: number }) {
   return (
     <span className="flex items-center gap-1">
-      <ChecklistGlyph />
+      <Icon value="list" size={14} />
       {count > 0 ? (
         <span className="font-mono text-[0.6875rem] font-medium tabular-nums">
           {count}
@@ -308,22 +309,3 @@ function RemoveGlyph() {
   );
 }
 
-function ChecklistGlyph() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 16 16"
-      className="h-3.5 w-3.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2.5 4.5l1.5 1.5 2.5-2.5" />
-      <path d="M2.5 11l1.5 1.5 2.5-2.5" />
-      <path d="M8.5 4.5h5" />
-      <path d="M8.5 11h5" />
-    </svg>
-  );
-}
