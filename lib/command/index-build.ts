@@ -37,7 +37,7 @@ export type RunDescriptor =
   | { type: "timer"; action: "start" | "stop" }
   | { type: "task"; action: "add" }
   | { type: "task"; action: "focus"; taskId: string }
-  | { type: "music"; action: "play" | "pause" };
+  | { type: "music"; action: "play" | "pause" | "next" };
 
 export type CommandKind = RunDescriptor["type"];
 
@@ -131,10 +131,10 @@ function verbEntries(
     run: { type: "scene", scene },
   }));
 
-  // The timer (011) and tasks (012) verbs dispatch for real in `runCommand`;
-  // music stays a no-op stub until plan 013. Adding a verb = an entry here + a
-  // `runCommand` case. `task-add` carries no title — the bar reads the typed
-  // remainder (e.g. ":add buy milk"); `focus on …` targets a specific task.
+  // The timer (011), tasks (012), and music (013) verbs all dispatch for real
+  // in `runCommand`. Adding a verb = an entry here + a `runCommand` case.
+  // `task-add` carries no title — the bar reads the typed remainder (e.g.
+  // ":add buy milk"); `focus on …` targets a specific task.
   const toolVerbs: CommandEntry[] = [
     verb("timer-start", "timer", "Start timer", ["timer", "start", "pomodoro"], {
       type: "timer",
@@ -155,6 +155,10 @@ function verbEntries(
     verb("music-pause", "music", "Pause music", ["music", "pause"], {
       type: "music",
       action: "pause",
+    }),
+    verb("music-next", "music", "Next station", ["music", "next", "station", "skip"], {
+      type: "music",
+      action: "next",
     }),
   ];
 

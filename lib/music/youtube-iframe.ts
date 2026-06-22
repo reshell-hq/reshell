@@ -11,16 +11,6 @@
 const SCRIPT_ID = "youtube-iframe-api";
 const SCRIPT_SRC = "https://www.youtube.com/iframe_api";
 
-/** The YouTube player states we read (`YT.PlayerState`). */
-export const YT_PLAYER_STATE = {
-  UNSTARTED: -1,
-  ENDED: 0,
-  PLAYING: 1,
-  PAUSED: 2,
-  BUFFERING: 3,
-  CUED: 5,
-} as const;
-
 export type YoutubePlayerVars = {
   controls?: 0 | 1;
   autoplay?: 0 | 1;
@@ -39,11 +29,10 @@ export type YoutubePlayerOptions = {
   playerVars?: YoutubePlayerVars;
   events?: {
     onReady?: () => void;
-    onStateChange?: (event: { data: number }) => void;
-    onError?: (event: { data: number }) => void;
   };
 };
 
+/** The slice of the IFrame player API the hidden player actually drives. */
 export type YoutubePlayer = {
   loadVideoById(id: string): void;
   cueVideoById(id: string): void;
@@ -51,13 +40,9 @@ export type YoutubePlayer = {
   cuePlaylist(options: { list: string; listType: "playlist" }): void;
   playVideo(): void;
   pauseVideo(): void;
-  nextVideo(): void;
-  previousVideo(): void;
   setVolume(volume: number): void;
   mute(): void;
   unMute(): void;
-  getPlayerState(): number;
-  destroy(): void;
 };
 
 type YoutubePlayerConstructor = new (

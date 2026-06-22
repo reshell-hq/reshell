@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import { useShell } from "@/components/shell/shell-context";
 import { Icon } from "@/components/icon";
 import { useGlobalTypeahead } from "@/hooks/use-global-typeahead";
+import { useMusic } from "@/hooks/use-music";
 import { useReshellState } from "@/hooks/use-reshell-state";
 import { useTasks } from "@/hooks/use-tasks";
 import { useTimer } from "@/hooks/use-timer";
@@ -51,6 +52,7 @@ export function CommandBarSlot() {
     useReshellState();
   const timer = useTimer();
   const tasks = useTasks();
+  const music = useMusic();
   const { closeActive, focusOpen } = useShell();
 
   const [query, setQuery] = useState("");
@@ -128,8 +130,13 @@ export function CommandBarSlot() {
         }
         break;
       case "music":
-        // ponytail: the music tool lands in plan 013; its verbs are indexed
-        // already but dispatch is a no-op until then.
+        if (run.action === "play") {
+          music.play();
+        } else if (run.action === "pause") {
+          music.pause();
+        } else {
+          music.next();
+        }
         break;
     }
     reset();

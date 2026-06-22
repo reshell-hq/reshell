@@ -12,7 +12,6 @@ export {
 } from "./playback";
 export {
   loadYoutubeIframeApi,
-  YT_PLAYER_STATE,
   type YoutubePlayer,
   type YoutubePlayerOptions,
 } from "./youtube-iframe";

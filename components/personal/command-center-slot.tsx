@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useClock } from "@/hooks/use-clock";
+import { useMusic } from "@/hooks/use-music";
 import { useReshellState } from "@/hooks/use-reshell-state";
 import { useTimer } from "@/hooks/use-timer";
 import { formatModeLabel, formatTimerSeconds } from "@/lib/timer";
@@ -148,10 +149,8 @@ function CommandCenterPanel() {
       </Section>
 
       <footer className="flex items-center justify-between gap-3 border-t border-border pt-3">
-        {/* ponytail: now-playing stays a static placeholder until plan 013
-            wires the music tool; the timer row reads live state below. */}
         <dl className="flex flex-col gap-0.5 text-xs">
-          <AmbientRow label="Now playing" value="Nothing playing" />
+          <NowPlayingAmbientRow />
           <TimerAmbientRow />
         </dl>
         <Button
@@ -185,6 +184,13 @@ function AmbientRow({ label, value }: { label: string; value: string }) {
       <dd className="text-foreground/70">{value}</dd>
     </div>
   );
+}
+
+/** Live ambient now-playing status, read from the music tool (plan 013). */
+function NowPlayingAmbientRow() {
+  const { station, isPlaying } = useMusic();
+  const value = isPlaying && station ? station.label : "Nothing playing";
+  return <AmbientRow label="Now playing" value={value} />;
 }
 
 /** Live ambient timer status, read from the timer tool (plan 011). */

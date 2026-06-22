@@ -4,9 +4,11 @@ import { Shell } from "@/components/shell";
 import {
   CommandBarSlot,
   CommandCenterSlot,
+  MusicSlot,
   TasksSlot,
   TimerSlot,
   WorkspaceEdges,
+  YoutubePlayer,
 } from "@/components/personal";
 import { ReshellProvider, useReshellState } from "@/hooks/use-reshell-state";
 import reshellConfig from "@/reshell.config";
@@ -33,10 +35,15 @@ function HomeStation() {
         canvasColor: "var(--background)",
       }}
     >
+      {/* Hidden audio-only player, mounted ONCE at the shell root (a direct
+          child of <Shell>, never inside the per-workspace WorkspaceEdges) so
+          music keeps playing across workspace switches (plan 013). */}
+      <YoutubePlayer />
       <CommandCenterSlot />
       <CommandBarSlot />
       <TimerSlot />
       <TasksSlot />
+      <MusicSlot />
       <WorkspaceEdges />
       <Shell.Content>
         <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">

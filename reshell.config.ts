@@ -14,6 +14,30 @@ export const reshellConfig = {
     { text: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
     { text: "Make it work, make it right, make it fast.", author: "Kent Beck" },
   ],
+  music: {
+    // YouTube-only stations. A `watch?v=`/`youtu.be` URL is a single video; a
+    // `playlist?list=` URL is a whole playlist that auto-advances.
+    stations: [
+      {
+        id: "lofi",
+        label: "Lofi beats",
+        url: "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+        icon: "🎧",
+      },
+      {
+        id: "jazz",
+        label: "Coffee jazz",
+        url: "https://youtu.be/Dx5qFachd3A",
+        icon: "☕",
+      },
+      {
+        id: "ambient",
+        label: "Ambient focus",
+        url: "https://www.youtube.com/playlist?list=PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo",
+        icon: "🌌",
+      },
+    ],
+  },
   workspaces: [
     {
       id: "work",
