@@ -31,3 +31,106 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED | REJECTED
 - **Even fixed-width edge zones:** rejected — slot extent is content-driven per product decision.
 - **Shell in root layout:** rejected — `<Shell>` is per-page client component.
 - **Multiple simultaneous active slots:** rejected — one active slot globally.
+
+---
+
+# Personal Edition — Plans 007+
+
+Turns the shell demo into the **personal edition of reshell**: a config-driven productivity station built on the existing `<Shell>` primitive, porting yeti-workspace's features (workspaces, bookmarks, timer, tasks, YouTube music, canvas widgets) without its IndexedDB store, settings modal, or stream player.
+
+**Product goal:** A typed, build-time `reshell.config.ts` is the read-only source of truth; mutable runtime state lives in a thin per-workspace **localStorage override** merged over config (ADR-0007). The canvas look + widget layout is owned by swappable **Scene** components (ADR-0008). The bottom `SearchSlot` is the single **command bar**; the top edge is the **command center**; the right edge holds **tools** (timer, tasks, music); bookmark groups are config-placed on the remaining edges.
+
+See `CONTEXT.md` (Personal edition glossary) and `docs/adr/0007`, `docs/adr/0008`.
+
+**Planned at commit:** `38ba3a9`
+
+## Execution order & status
+
+| Plan | Title | Priority | Effort | Depends on | Status |
+|------|-------|----------|--------|------------|--------|
+| 007 | Config + override foundation | P1 | L | 001–006 | TODO |
+| 008 | Bookmarks on edges | P1 | M | 007 | TODO |
+| 009 | Workspaces + command center | P1 | M | 007 | TODO |
+| 010 | Command bar | P1 | M | 008, 009 | TODO |
+| 011 | Timer tool | P1 | M | 007 | TODO |
+| 012 | Tasks tool | P2 | M | 011 | TODO |
+| 013 | Music tool (YouTube) | P2 | M | 007 | TODO |
+| 014 | Scenes + canvas widgets | P1 | L | 011, 012, 013 | TODO |
+| 015 | Icon system + curated animated pack | P2 | M | 008 | TODO |
+| 016 | Modularity & export-surface audit | P1 | M | 007–015 | TODO |
+| 017 | Final quality pass (improve · ponytail-audit · impeccable polish) | P1 | M | 007–016 | TODO |
+
+Status values: TODO | IN PROGRESS | DONE | BLOCKED | REJECTED
+
+## Dependency notes
+
+- **007** is the foundation: config types, schema validation, the override store, and the merge/reset semantics. Everything reads through it. It also replaces the create-next-app-style demo `app/page.tsx` with the home station shell.
+- **008** and **009** both depend only on **007** and can be built in parallel; **008** renders config bookmark groups as edge slots, **009** adds multi-workspace switching + the top command-center slot.
+- **010** needs **008** + **009** because the command bar fuzzy-finds across workspaces and bookmarks.
+- **011** (timer) depends only on **007**; **012** (tasks) depends on **011** for the start-focus / countdown-from-estimate integration; **013** (music) depends only on **007**.
+- **014** depends on **011/012/013** because the `nowPlaying`, `pomodoro`, and `focusTasks` canvas widgets read those tools' state. It introduces the Scene components and wires the command-center scene/widget toggles.
+- **015** depends on **008**: it adds the curated animated icon pack and named-icon resolution. Plan 008 ships emoji+image icons behind an icon-resolver seam (`lib/icons/`); 015 fills that seam with the pack and retrofits handles/widgets/command center.
+- **016** hardens the public export surface, verifies the styling/modularity rules below were followed, and proves the repo imports cleanly as a submodule.
+- **017** is the final holistic quality pass: a whole-repo `improve deep` audit, a `ponytail-audit` over-engineering sweep, an `impeccable polish/audit` of the finished UI, and a `ponytail-debt` ledger of deferred shortcuts. Run it last, after 016.
+
+## Conventions (apply to every plan 007+)
+
+These were the failure points of the previous attempt; treat them as acceptance criteria, not suggestions. ADR-0009 records the architectural commitment.
+
+### Commit discipline — Conventional Commits
+
+- Commit after each **atomic, modular change** (a cohesive unit that builds + passes lint/type/tests), not one giant commit per plan. Each plan lists suggested commit checkpoints under its "## Commits" section.
+- Format: `type(scope): summary` — e.g. `feat(timer): add timestamp-based pomodoro logic`.
+- Types: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `perf`, `build`.
+- Scopes (per area): `config`, `state`, `override`, `bookmarks`, `workspace`, `command-center`, `cmd`, `timer`, `tasks`, `music`, `scene`, `widgets`, `icons`, `shell`.
+- Keep pure-logic + its tests in the same commit. Don't commit code that fails `npm run lint`, `npx tsc --noEmit`, or `npm test`.
+
+### Modularity — built to be imported
+
+This repo will be added as a **git submodule** to the main reshell-workspace and its components imported to build the paid tiers (standard, pro, team). Therefore:
+
+- **Component-driven**: features are small, single-responsibility components + pure-logic modules. Pure logic (`lib/**`) has zero React/DOM deps and is unit-tested; React stays thin.
+- **No app coupling**: importable units must not depend on `app/` or on Next.js page internals. They take data via props/hooks/context, not by reaching into globals. `app/page.tsx` is just a composition root.
+- **Public export surface**: features expose a barrel (e.g. `components/personal/index.ts`, `lib/<feature>/index.ts`) so consumers `import { TimerSlot, useTimer } from "reshell/..."`. Plan 016 formalizes this; build toward it from the start.
+- **Config/override injectable**: the consuming workspace must be able to provide its own config + persistence (the paid tiers may swap localStorage for a real backend). Keep the store behind the interface from plan 007; don't hardcode `localStorage` calls inside components.
+- **Not over-engineered**: prefer the simplest thing that works (YAGNI). No speculative abstractions, no indirection without a second caller. Reach for the standard library / native platform / an existing UI primitive before writing bespoke code.
+
+### Styling — Tailwind first, colocated, never monolithic
+
+The previous attempt collapsed under one giant global CSS file. Hard rules:
+
+- **Tailwind utility classes are the default** for layout/spacing/color.
+- `app/globals.css` stays minimal: design tokens (the oklch vars), `@theme`, resets — **no component styles**. Do not grow it into a catch-all.
+- When a component needs CSS beyond utilities (keyframes, complex selectors), use a **colocated CSS Module** (`component.module.css`) next to the component, or a `<style>` scoped block — never a shared global stylesheet.
+- Use **shadcn** primitives (`components/ui/`) for buttons, inputs, dialogs, switches, etc. — `components.json` is already configured (style `base-luma`). Add them via the shadcn CLI; don't reinvent form controls.
+- Scene visual identity (ADR-0008) lives in the scene component + its `ShellTheme`, not in global CSS.
+
+### Icons
+
+- Ship a curated, on-brand default icon set (the animated `@animateicons/react` pack, Lucide subpath) so users get a polished setup out of the box (plan 015).
+- An `icon` field (bookmarks, groups, stations) resolves in priority order: **emoji** (literal) → **image URL** (http/https) → **named pack icon** (e.g. `"github"`). Resolution is a pure helper in `lib/icons/`.
+
+### Skill workflow (improve · ponytail · impeccable)
+
+Three skills wrap every plan; each plan's `## Skill passes` names the exact commands. The lifecycle:
+
+1. **Plan-time — `improve` (read-only).** These plans were authored with `improve`. Before executing a plan, run `improve review-plan plans/0NN-*.md` to confirm it is self-contained and tighten it. Use `improve execute <plan>` to dispatch an executor and review the diff, and `improve reconcile` between sessions to verify DONE/BLOCKED status. `improve` never edits code — it plans and reviews.
+2. **One-time design setup — `impeccable init`.** Before the first UI plan (008), run `impeccable init` once to create `PRODUCT.md` + `DESIGN.md` and a committed OKLCH token palette. Every scene/widget/slot builds on that system — no ad-hoc colors. (Plan 007 runs it.)
+3. **Build-time — `ponytail` (full).** Implement laziest-first on the ladder: YAGNI → stdlib → native/shadcn → one line → minimum code. No speculative abstractions, no scaffolding "for later". Mark deliberate shortcuts with a `ponytail:` comment naming the ceiling + upgrade path.
+4. **Build-time — `impeccable` (UI surfaces only).** For a plan with a visible surface: `impeccable shape <surface>` before coding the UI, `impeccable polish`/`critique <surface>` before the final commit. Honor its rules (contrast ≥4.5:1, intentional motion + `prefers-reduced-motion`, the absolute bans, semantic z-index). Logic-only work has **no** impeccable pass — don't force one.
+5. **Pre-commit gate — `ponytail-review`.** Before a plan's final commit, `ponytail-review` the diff and cut what it flags (reinvented stdlib, dead flexibility, single-use abstractions). Target net-negative lines.
+6. **End-of-project — `ponytail-debt` + audits.** Plan 017 harvests every `ponytail:` comment into a debt ledger and runs the whole-repo `improve deep` / `ponytail-audit` / `impeccable polish` passes.
+
+These compose with the commit/modularity/styling rules above: `ponytail` keeps it un-over-engineered, `impeccable` keeps the UI impeccable, `improve` keeps the plans/executions honest.
+
+## Findings considered and rejected (personal edition)
+
+- **IndexedDB `Library` blob (yeti's model):** rejected — config file is the source of truth; runtime state is a localStorage override (ADR-0007).
+- **Separate theme + layout presets (yeti's model):** rejected — collapsed into self-contained **Scene** components (ADR-0008).
+- **Stream player / Icecast proxy:** rejected — out of scope; YouTube-only music.
+- **Settings modal:** rejected — configuration is the config file; runtime toggles live in the command center.
+- **Bare single-key shortcuts:** rejected — any keystroke opens the command bar, so commands are issued there (verb prefix); only Escape/Tab/⌘-modifiers exist outside it.
+- **Config write-back to disk:** rejected — config is read-only at runtime.
+- **Monolithic global stylesheet (previous attempt):** rejected — Tailwind + colocated CSS Modules + shadcn; `globals.css` is tokens/resets only (ADR-0009).
+- **Components coupled to `app/`/Next internals:** rejected — features are importable as a submodule; `app/` is only a composition root (ADR-0009).
+- **Bespoke form controls / one-off CSS:** rejected — use shadcn primitives and the standard platform before custom code (not over-engineered).
