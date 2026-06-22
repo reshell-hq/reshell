@@ -1,4 +1,5 @@
 export { BookmarkGroupSlot } from "./bookmark-group-slot";
+export { Canvas } from "./canvas";
 export { CommandBarSlot } from "./command-bar-slot";
 export { CommandCenterSlot } from "./command-center-slot";
 export { MusicSlot } from "./music-slot";

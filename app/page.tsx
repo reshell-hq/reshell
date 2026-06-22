@@ -2,6 +2,7 @@
 
 import { Shell } from "@/components/shell";
 import {
+  Canvas,
   CommandBarSlot,
   CommandCenterSlot,
   MusicSlot,
@@ -10,6 +11,7 @@ import {
   WorkspaceEdges,
   YoutubePlayer,
 } from "@/components/personal";
+import { getScene } from "@/components/scenes";
 import { ReshellProvider, useReshellState } from "@/hooks/use-reshell-state";
 import reshellConfig from "@/reshell.config";
 
@@ -26,15 +28,16 @@ export default function Home() {
 }
 
 function HomeStation() {
-  const { config, activeWorkspace } = useReshellState();
+  const { activeWorkspace } = useReshellState();
+
+  // The active scene owns the shell's look (ADR-0008): its `shellTheme` recolours
+  // the rim/canvas/panel here, while <Canvas/> resolves the same scene to lay out
+  // the widgets inside Shell.Content. Both read `activeWorkspace.scene`, so a
+  // command-center scene switch recolours and re-lays-out in one move.
+  const scene = getScene(activeWorkspace.scene);
 
   return (
-    <Shell
-      theme={{
-        shellColor: "var(--muted)",
-        canvasColor: "var(--background)",
-      }}
-    >
+    <Shell theme={scene.shellTheme}>
       {/* Hidden audio-only player, mounted ONCE at the shell root (a direct
           child of <Shell>, never inside the per-workspace WorkspaceEdges) so
           music keeps playing across workspace switches (plan 013). */}
@@ -46,21 +49,7 @@ function HomeStation() {
       <MusicSlot />
       <WorkspaceEdges />
       <Shell.Content>
-        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-          {config.displayName ? (
-            <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-              Welcome back, {config.displayName}
-            </p>
-          ) : null}
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-            {activeWorkspace.name}
-          </h1>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Your reshell station is booting from{" "}
-            <code className="font-mono">reshell.config.ts</code>. Workspaces,
-            bookmarks, and tools arrive in the next plans.
-          </p>
-        </main>
+        <Canvas />
       </Shell.Content>
     </Shell>
   );
