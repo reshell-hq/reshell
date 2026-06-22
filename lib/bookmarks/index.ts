@@ -1,1 +1,1 @@
-export { displayIcon, displayTitle, faviconUrl } from "./link-display";
+export { displayTitle, faviconUrl } from "./link-display";

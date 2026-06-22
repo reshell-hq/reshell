@@ -1,10 +1,10 @@
 import type { Bookmark } from "@/lib/config";
-import { resolveIcon, type ResolvedIcon } from "@/lib/icons";
 
 /**
  * How a bookmark presents in the UI (CONTEXT: "Bookmark"). Pure, zero React/DOM
- * (ADR-0009). This is the single home for favicon/title resolution — the command
- * bar (plan 010) and `nowPlaying`/widgets reuse it, so don't duplicate it.
+ * (ADR-0009). The single home for favicon/title resolution — the command bar
+ * (plan 010) reuses it, so don't duplicate it. Icon resolution itself lives in
+ * `<Icon>` (plan 015): callers pass `bookmark.icon` with a favicon `fallback`.
  */
 
 /** Config `title` if set, else the URL hostname (sans `www.`), else the raw URL. */
@@ -33,12 +33,4 @@ export function faviconUrl(url: string): string {
   } catch {
     return "/favicon.ico";
   }
-}
-
-/** The bookmark's resolved `icon`, else its favicon as an image. */
-export function displayIcon(bookmark: Bookmark): ResolvedIcon {
-  const icon = resolveIcon(bookmark.icon);
-  return icon.kind === "none"
-    ? { kind: "image", src: faviconUrl(bookmark.url) }
-    : icon;
 }

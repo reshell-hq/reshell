@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { displayIcon, displayTitle, faviconUrl } from "../link-display";
+import { displayTitle, faviconUrl } from "../link-display";
 import type { Bookmark } from "@/lib/config";
 
 describe("displayTitle", () => {
@@ -33,31 +33,5 @@ describe("faviconUrl", () => {
 
   it("falls back to /favicon.ico for an invalid URL", () => {
     expect(faviconUrl("not a url")).toBe("/favicon.ico");
-  });
-});
-
-describe("displayIcon", () => {
-  it("resolves an explicit emoji icon", () => {
-    const bookmark: Bookmark = { url: "https://github.com", icon: "🐙" };
-    expect(displayIcon(bookmark)).toEqual({ kind: "emoji", value: "🐙" });
-  });
-
-  it("resolves an explicit image icon", () => {
-    const bookmark: Bookmark = {
-      url: "https://github.com",
-      icon: "https://example.com/icon.png",
-    };
-    expect(displayIcon(bookmark)).toEqual({
-      kind: "image",
-      src: "https://example.com/icon.png",
-    });
-  });
-
-  it("falls back to the favicon image when no icon is set", () => {
-    const bookmark: Bookmark = { url: "https://github.com" };
-    expect(displayIcon(bookmark)).toEqual({
-      kind: "image",
-      src: faviconUrl("https://github.com"),
-    });
   });
 });
