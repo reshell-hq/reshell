@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# reshell — personal edition
 
-## Getting Started
+A config-driven personal productivity station built on the **reshell** shell
+primitive: a per-page `<Shell>` with content-driven edge notches. One typed,
+build-time `reshell.config.ts` is the read-only source of truth; runtime changes
+(active workspace, scene/widget toggles) live in a thin per-workspace
+localStorage **override** merged over the config (ADR-0007). The canvas look and
+widget layout are owned by swappable **Scene** components (ADR-0008).
 
-First, run the development server:
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Quality gates (all must pass before a commit):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Authoring your setup — `reshell.config.ts`
 
-## Learn More
+`reshell.config.ts` is your dotfile: edit it and reload. It is **read-only at
+runtime** — the app never writes back to it; runtime changes are stored
+separately as an override and merged over it. `ReshellProvider` validates the
+config on load (zod) and renders an explanatory error surface if it's invalid.
 
-To learn more about Next.js, take a look at the following resources:
+```ts
+import type { ReshellConfig } from "@/lib/config";
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export const reshellConfig = {
+  displayName: "Jack",
+  defaultWorkspaceId: "work",
+  clock: { format: "24h", timezone: "local" }, // "12h" | "24h"; IANA zone or "local"
+  quotes: [{ text: "…", author: "…" }],
+  music: {
+    // YouTube only. A watch?v= / youtu.be URL is a single video; a
+    // playlist?list= URL auto-advances.
+    stations: [{ id: "lofi", label: "Lofi beats", url: "https://youtu.be/…", icon: "🎧" }],
+  },
+  workspaces: [
+    {
+      id: "work",
+      name: "Work",
+      scene: "default", // default | editorial | meridian | atelier
+      widgets: { clock: true, welcome: true, quote: true },
+      bookmarks: {
+        // Edges: `left` and `bottom` only. `top` is reserved for the command
+        // center, `right` for the tools (timer/tasks/music).
+        left: [
+          {
+            name: "Dev",
+            icon: "code", // see icon resolution below
+            links: [{ url: "https://github.com", title: "GitHub", icon: "github" }],
+          },
+        ],
+      },
+    },
+  ],
+} satisfies ReshellConfig;
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+export default reshellConfig;
+```
 
-## Deploy on Vercel
+**Icons** (bookmarks, groups, stations) resolve in priority order:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **emoji** literal (`"🎧"`),
+2. **image URL** (`http`/`https`),
+3. **named pack icon** (`"github"`, `"code"`, …) — animates on hover.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A bookmark with no `icon` falls back to its favicon. See `lib/icons/README.md`
+for the curated names. `validateConfig` (exported) reports exactly what's wrong.
+
+## Consuming it from the workspace
+
+This repo is added as a **git submodule** to the reshell-workspace and its
+components imported to build the paid tiers. Import **only** from the top-level
+public barrel (`index.ts`) — it is the supported contract:
+
+```ts
+import {
+  ReshellProvider, useReshellState,
+  useTimer, useTasks, useMusic, useClock,
+  Shell, TimerSlot, CommandBarSlot, CommandCenterSlot, WorkspaceEdges, Canvas,
+  scenes, getScene, Icon, validateConfig,
+  type ReshellConfig, type Scene, type ShellThemeInput,
+} from "<submodule>";
+
+function Tier({ config }: { config: ReshellConfig }) {
+  return (
+    <ReshellProvider config={config}>
+      <Shell>
+        <CommandCenterSlot />
+        <CommandBarSlot />
+        <TimerSlot />
+        <WorkspaceEdges />
+        <Shell.Content><Canvas /></Shell.Content>
+      </Shell>
+    </ReshellProvider>
+  );
+}
+```
+
+What the barrel exports: `ReshellProvider`, the tool/clock hooks, the `Shell`
+primitive + theme types, the slot components, scenes + registry, the canvas
+widgets, `<Icon>`, and the config types/validators. Anything reachable only by a
+deep path (`@/lib/.../*`) is **internal** and may change without notice.
+
+The contract holds three constraints (audited by plan 016, see ADR-0009):
+
+- **No `app/` coupling** — importing the barrel never pulls in the composition
+  root or a global stylesheet; `app/` is only this repo's own demo host.
+- **Injectable persistence** — features never call `localStorage` directly; all
+  of it routes through the `lib/override` store seam, so a paid tier can swap in
+  a backend store by replacing that module's subscribe/snapshot/write surface.
+- **Colocated styling** — Tailwind utilities + colocated CSS Modules + shadcn
+  primitives; the consumer supplies its own design tokens.
+
+## Project layout
+
+- `lib/**` — pure, React-free, unit-tested logic (config, override, state,
+  bookmarks, command, timer, tasks, music, scene, icons, shell geometry).
+- `components/**` — React: `shell/` (primitive), `personal/` (slots), `scenes/`,
+  `widgets/`, `icon/`, `ui/` (shadcn).
+- `hooks/**` — the provider and tool/clock hooks.
+- `app/**` — composition root only (`page.tsx`) + tokens/resets (`globals.css`).
+- `docs/adr/**`, `CONTEXT.md`, `DESIGN.md`, `plans/**` — architecture decisions,
+  glossary, design system, and the implementation plans.
+
+See `AGENTS.md` for the full module map and the submodule import surface.
