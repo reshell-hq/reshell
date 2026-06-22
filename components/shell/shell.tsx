@@ -36,7 +36,7 @@ function ShellSurface({ children }: { children: ReactNode }) {
       {children}
       <div
         ref={setOverlayElement}
-        className="pointer-events-none fixed inset-0 z-[60]"
+        className="pointer-events-none fixed inset-0 z-60"
         aria-live="polite"
       />
     </div>

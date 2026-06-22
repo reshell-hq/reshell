@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Shell } from "@/components/shell";
 import { useShell } from "@/components/shell/shell-context";
 import { Icon } from "@/components/icon";
@@ -145,7 +145,7 @@ export function CommandBarSlot() {
 
   return (
     <Shell.Edge side="bottom">
-      <Shell.Slot id={SLOT_ID}>
+      <Shell.Slot id={SLOT_ID} autoFocus>
         <CommandPanel
           query={query}
           results={results}
@@ -222,12 +222,9 @@ function CommandPanel({
 }: CommandPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus on mount. Only the live portal copy is focusable — the offscreen
-  // measurer is `visibility:hidden`, so `focus()` is a no-op there. Opening the
-  // bar (hover hit-zone or typeahead) mounts the portal, which lands here.
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  // Focus is handled by Shell.Slot's `autoFocus` (it waits for the portal
+  // reveal — focusing a `display:none` field is a no-op, which is why early
+  // mount-focus failed and the input dropped Backspace/Enter).
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {

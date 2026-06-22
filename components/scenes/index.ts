@@ -7,4 +7,7 @@ export { defaultScene } from "./default-scene";
 export { editorialScene } from "./editorial-scene";
 export { meridianScene } from "./meridian-scene";
 export { atelierScene } from "./atelier-scene";
+export { nocturneScene } from "./nocturne-scene";
+export { terminalScene } from "./terminal-scene";
+export { auroraScene } from "./aurora-scene";
 export { scenes, getScene } from "./registry";

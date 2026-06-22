@@ -71,6 +71,9 @@ describe("buildCommandIndex", () => {
       { type: "scene", scene: "editorial" },
       { type: "scene", scene: "meridian" },
       { type: "scene", scene: "atelier" },
+      { type: "scene", scene: "nocturne" },
+      { type: "scene", scene: "terminal" },
+      { type: "scene", scene: "aurora" },
     ]);
   });
 

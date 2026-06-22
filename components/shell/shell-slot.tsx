@@ -16,6 +16,13 @@ export type ShellSlotProps = {
   handleLabel?: string;
   /** Override the handle component for this slot only (else the theme's). */
   Handle?: ShellHandleComponent;
+  /**
+   * Focus the first text field in the revealed panel once it opens. The portal
+   * waits for the reveal — focusing while the cavity is still `display:none`
+   * (its initial state until the notch arrives) is a no-op — so the command bar
+   * input actually receives keystrokes (Backspace/Enter included).
+   */
+  autoFocus?: boolean;
   children?: ReactNode;
 };
 
@@ -34,6 +41,7 @@ export function ShellSlot({
   handle,
   handleLabel,
   Handle,
+  autoFocus,
   children,
 }: ShellSlotProps) {
   const { side, siblingCount } = useShellEdge();
@@ -88,18 +96,14 @@ export function ShellSlot({
   return (
     <>
       {children ? (
-        <div
-          ref={measureRef}
-          style={OFFSCREEN_MEASURE_STYLE}
-          aria-hidden
-        >
+        <div ref={measureRef} style={OFFSCREEN_MEASURE_STYLE} aria-hidden>
           {children}
         </div>
       ) : null}
       {activationStyle ? (
         <div
           data-shell-slot={id}
-          className="z-[55] touch-none"
+          className="z-55 touch-none"
           style={activationStyle}
           onPointerEnter={() => hoverEnter(id)}
           onPointerLeave={hoverLeave}
@@ -114,7 +118,11 @@ export function ShellSlot({
           {handle}
         </ShellHandle>
       ) : null}
-      {children ? <ShellSlotPortal slotId={id}>{children}</ShellSlotPortal> : null}
+      {children ? (
+        <ShellSlotPortal slotId={id} autoFocus={autoFocus}>
+          {children}
+        </ShellSlotPortal>
+      ) : null}
     </>
   );
 }

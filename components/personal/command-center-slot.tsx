@@ -27,6 +27,9 @@ const SCENE_LABELS: Record<SceneName, string> = {
   editorial: "Editorial",
   meridian: "Meridian",
   atelier: "Atelier",
+  nocturne: "Nocturne",
+  terminal: "Terminal",
+  aurora: "Aurora",
 };
 
 const WIDGET_LABELS: Record<CanvasWidgetId, string> = {

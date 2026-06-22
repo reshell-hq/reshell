@@ -1,0 +1,112 @@
+/* Colocated scene styling (ADR-0009): the framed terminal window, CRT scanline
+   overlay, and blinking cursor. Palette lives in the tsx. The cursor blink and
+   scanlines are gated on no-preference; the global reset also neutralises them. */
+
+.canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+/* CRT scanline veil — decorative, never intercepts the pointer. */
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.16) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+}
+
+.window {
+  border: 1px solid oklch(0.86 0.17 152 / 0.22);
+  border-radius: 10px;
+  overflow: hidden;
+  background: oklch(0.155 0.012 155 / 0.85);
+  box-shadow:
+    0 0 0 1px oklch(0.86 0.17 152 / 0.05),
+    0 30px 80px -42px rgba(0, 0, 0, 0.85);
+  animation: terminal-boot 320ms ease-out both;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid oklch(0.86 0.17 152 / 0.18);
+  background: oklch(0.19 0.015 155 / 0.6);
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot[data-tone="r"] {
+  background: oklch(0.65 0.19 25);
+}
+.dot[data-tone="y"] {
+  background: oklch(0.83 0.15 78);
+}
+.dot[data-tone="g"] {
+  background: oklch(0.78 0.17 152);
+}
+
+.barTitle {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: oklch(0.62 0.1 152);
+}
+
+.body {
+  padding: 1.5rem clamp(1rem, 3vw, 1.9rem) 1.75rem;
+  text-shadow: 0 0 12px oklch(0.86 0.17 152 / 0.3);
+}
+
+.cmd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prompt {
+  color: oklch(0.62 0.12 152);
+}
+
+.cursor {
+  display: inline-block;
+  width: 9px;
+  height: 1.05em;
+  background: oklch(0.86 0.16 152);
+  vertical-align: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cursor {
+    animation: terminal-blink 1.1s steps(1) infinite;
+  }
+}
+
+@keyframes terminal-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes terminal-boot {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

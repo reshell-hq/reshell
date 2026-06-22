@@ -119,6 +119,11 @@ export function ShellProvider({
     Map<string, Size>
   >(() => new Map());
   const shellSvgRef = useRef<SVGSVGElement | null>(null);
+  // Monotonic registration order + a stable per-id map, so a slot keeps its
+  // order across re-registration (deps change) and reused ids (e.g. a bookmark
+  // slot id surviving a workspace switch) stay put.
+  const orderSeqRef = useRef(0);
+  const orderByIdRef = useRef<Map<string, number>>(new Map());
   const [overlayElement, setOverlayElement] =
     useState<HTMLDivElement | null>(null);
   const [viewport, setViewportState] = useState<Size>({
@@ -167,7 +172,13 @@ export function ShellProvider({
   );
 
   const registerSlot = useCallback((slot: SlotRegistration) => {
-    setSlots((previous) => new Map(previous).set(slot.id, slot));
+    let order = orderByIdRef.current.get(slot.id);
+    if (order === undefined) {
+      order = orderSeqRef.current++;
+      orderByIdRef.current.set(slot.id, order);
+    }
+    const withOrder: SlotRegistration = { ...slot, order };
+    setSlots((previous) => new Map(previous).set(slot.id, withOrder));
   }, []);
 
   const unregisterSlot = useCallback((id: string) => {
@@ -199,20 +210,53 @@ export function ShellProvider({
     });
   }, []);
 
+  // Anchor distribution is global per edge, not per `Shell.Edge` block: every
+  // slot on an edge — however its JSX is nested (the three right-edge tools each
+  // mount their own `Shell.Edge`) — is spaced together so handles never stack.
+  // Order within an edge: registered `anchorIndex` first (preserves a single
+  // edge's authored order, e.g. bookmark groups), then registration `order`.
+  const resolvedSlots = useMemo(() => {
+    const byEdge = new Map<ShellEdge, SlotRegistration[]>();
+    for (const slot of slots.values()) {
+      const list = byEdge.get(slot.edge);
+      if (list) {
+        list.push(slot);
+      } else {
+        byEdge.set(slot.edge, [slot]);
+      }
+    }
+
+    const resolved = new Map<string, SlotRegistration>();
+    for (const list of byEdge.values()) {
+      list.sort(
+        (a, b) =>
+          a.anchorIndex - b.anchorIndex || (a.order ?? 0) - (b.order ?? 0),
+      );
+      list.forEach((slot, index) => {
+        resolved.set(slot.id, {
+          ...slot,
+          anchorIndex: index,
+          siblingCount: list.length,
+        });
+      });
+    }
+    return resolved;
+  }, [slots]);
+
   const getAnchor = useCallback(
     (id: string): SlotAnchor | null => {
-      const slot = slots.get(id);
+      const slot = resolvedSlots.get(id);
       if (!slot) {
         return null;
       }
       return getSlotAnchor(bounds, slot);
     },
-    [bounds, slots],
+    [bounds, resolvedSlots],
   );
 
   const getSlotExtent = useCallback(
     (id: string): SlotExtent | null => {
-      const slot = slots.get(id);
+      const slot = resolvedSlots.get(id);
       if (!slot) {
         return null;
       }
@@ -225,12 +269,12 @@ export function ShellProvider({
         shellSvgRef.current,
       );
     },
-    [bounds, slots, slotContentSizes],
+    [bounds, resolvedSlots, slotContentSizes],
   );
 
   const getMinSlotExtent = useCallback(
     (id: string): SlotExtent | null => {
-      const slot = slots.get(id);
+      const slot = resolvedSlots.get(id);
       if (!slot) {
         return null;
       }
@@ -242,7 +286,7 @@ export function ShellProvider({
         shellSvgRef.current,
       );
     },
-    [bounds, slots],
+    [bounds, resolvedSlots],
   );
 
   const value = useMemo(

@@ -36,4 +36,11 @@ export type SlotRegistration = {
   siblingCount: number;
   /** Whether this slot renders a handle (drives per-edge minimisation). */
   hasHandle: boolean;
+  /**
+   * Monotonic registration order, assigned by the provider. Used as the
+   * tiebreaker when distributing slots that share an `anchorIndex` across
+   * separate `Shell.Edge` blocks on the same edge, so independent slots (e.g.
+   * the three right-edge tools) spread out instead of stacking at centre.
+   */
+  order?: number;
 };

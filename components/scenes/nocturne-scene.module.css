@@ -1,0 +1,76 @@
+/* Colocated scene styling (ADR-0009): the midnight control-room backdrop and
+   its frosted bento cards. Palette lives in the tsx; the looping glow drift is
+   gated on no-preference (the global reduced-motion reset also neutralises it). */
+
+.canvas {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Two soft corner glows that slowly breathe — purely decorative. */
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      760px 520px at 8% -10%,
+      oklch(0.45 0.16 288 / 0.4),
+      transparent 60%
+    ),
+    radial-gradient(
+      680px 560px at 108% 112%,
+      oklch(0.5 0.12 210 / 0.32),
+      transparent 55%
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glow {
+    animation: nocturne-breathe 14s ease-in-out infinite alternate;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: var(--radius-xl);
+  background: oklch(0.24 0.022 285 / 0.6);
+  padding: 1.25rem 1.35rem;
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  box-shadow:
+    0 24px 60px -34px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 oklch(1 0 0 / 0.05);
+  animation: nocturne-rise 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card:empty {
+  display: none;
+}
+
+@keyframes nocturne-breathe {
+  from {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes nocturne-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

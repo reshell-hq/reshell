@@ -26,6 +26,9 @@ const SCENE_LABELS: Record<SceneName, string> = {
   editorial: "Editorial",
   meridian: "Meridian",
   atelier: "Atelier",
+  nocturne: "Nocturne",
+  terminal: "Terminal",
+  aurora: "Aurora",
 };
 
 /** What selecting an entry does. Serialisable — dispatched by `runCommand`. */

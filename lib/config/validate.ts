@@ -33,6 +33,9 @@ export const sceneNameSchema = z.enum([
   "editorial",
   "meridian",
   "atelier",
+  "nocturne",
+  "terminal",
+  "aurora",
 ]);
 
 export const canvasWidgetIdSchema = z.enum([

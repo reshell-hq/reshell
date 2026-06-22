@@ -24,9 +24,11 @@ import { useShell } from "./shell-context";
  */
 export function ShellSlotPortal({
   slotId,
+  autoFocus = false,
   children,
 }: {
   slotId: string;
+  autoFocus?: boolean;
   children: ReactNode;
 }) {
   const {
@@ -59,6 +61,36 @@ export function ShellSlotPortal({
     setPortal({ slotId, edge, clip, inner });
     return () => clearPortal(slotId);
   }, [isActive, edge, overlayElement, slotId, setPortal, clearPortal]);
+
+  // Focus the first text field once the cavity is actually revealed. The clip
+  // starts `display:none` and the animation loop clears it when the notch
+  // reaches this edge; focusing before then silently fails, which is why the
+  // command-bar input never received Backspace/Enter. Poll on rAF until shown.
+  useEffect(() => {
+    if (!autoFocus || !isActive || !overlayElement) {
+      return;
+    }
+    let frame = 0;
+    const focusWhenRevealed = () => {
+      const clip = clipRef.current;
+      const inner = innerRef.current;
+      if (!clip || !inner) {
+        return;
+      }
+      if (clip.style.display === "none") {
+        frame = requestAnimationFrame(focusWhenRevealed);
+        return;
+      }
+      const field = inner.querySelector<HTMLElement>(
+        "input, textarea, [contenteditable='true']",
+      );
+      if (field && document.activeElement !== field) {
+        field.focus({ preventScroll: true });
+      }
+    };
+    frame = requestAnimationFrame(focusWhenRevealed);
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocus, isActive, overlayElement]);
 
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // Focus moved outside this slot's content — release the pin and let the

@@ -1,0 +1,100 @@
+/* Colocated scene styling (ADR-0009): the drifting aurora blobs and frosted
+   glass cards. Palette lives in the tsx. Blob drift is gated on no-preference;
+   the global reduced-motion reset also neutralises it. */
+
+.canvas {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: oklch(0.965 0.012 250);
+}
+
+.blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.b1 {
+  width: 46vw;
+  height: 46vw;
+  background: oklch(0.78 0.15 300);
+  top: -12%;
+  left: -8%;
+}
+.b2 {
+  width: 42vw;
+  height: 42vw;
+  background: oklch(0.82 0.13 200);
+  bottom: -16%;
+  right: -6%;
+}
+.b3 {
+  width: 34vw;
+  height: 34vw;
+  background: oklch(0.85 0.12 30);
+  top: 34%;
+  left: 44%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .b1 {
+    animation: aurora-drift-1 22s ease-in-out infinite alternate;
+  }
+  .b2 {
+    animation: aurora-drift-2 26s ease-in-out infinite alternate;
+  }
+  .b3 {
+    animation: aurora-drift-3 30s ease-in-out infinite alternate;
+  }
+}
+
+.glass {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid oklch(1 0 0 / 0.65);
+  border-radius: var(--radius-2xl);
+  background: oklch(1 0 0 / 0.5);
+  padding: 1.25rem 1.4rem;
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  box-shadow:
+    0 18px 50px -26px oklch(0.4 0.1 264 / 0.4),
+    inset 0 1px 0 oklch(1 0 0 / 0.8);
+  animation: aurora-rise 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.glass:empty {
+  display: none;
+}
+
+@keyframes aurora-drift-1 {
+  to {
+    transform: translate(7vw, 9vh) scale(1.12);
+  }
+}
+@keyframes aurora-drift-2 {
+  to {
+    transform: translate(-6vw, -8vh) scale(1.08);
+  }
+}
+@keyframes aurora-drift-3 {
+  to {
+    transform: translate(-9vw, 5vh) scale(0.9);
+  }
+}
+
+@keyframes aurora-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
