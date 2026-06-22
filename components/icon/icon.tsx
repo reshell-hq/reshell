@@ -1,28 +1,57 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { resolveIcon } from "@/lib/icons";
+import { iconByName, resolveIcon } from "@/lib/icons";
 
 /**
- * Minimal renderer for the icon-resolver seam: emoji and image work now; a
- * `named` icon shows a neutral placeholder until plan 015 wires the curated
- * animated pack. Standalone (no app coupling) so the paid tiers reuse it.
+ * The single render path for an `icon` field (CONTEXT): it resolves the raw
+ * string and draws the matching kind — a curated animated pack glyph (named),
+ * an emoji/literal (span), or a remote image (`<img>`). Standalone and
+ * app-decoupled (ADR-0009) so the paid tiers reuse it.
+ *
+ * `size` (px) drives every kind uniformly so a call site sizes the box once;
+ * `className` is for colour/layout. Named glyphs inherit `currentColor` and
+ * animate on hover (the pack honours `prefers-reduced-motion` itself — its
+ * hover trigger is gated on `useReducedMotion`); pass `animateOnHover={false}`
+ * to render them static.
  */
 export function Icon({
   value,
+  size = 16,
   className,
+  animateOnHover = true,
   fallback = null,
 }: {
   value?: string;
+  /** Box size in px; sizes the named SVG, the image, and the emoji alike. */
+  size?: number;
   className?: string;
+  /** Named glyphs only: animate on hover (ignored under reduced motion). */
+  animateOnHover?: boolean;
   /** Rendered when `value` resolves to nothing (e.g. a group with no icon). */
   fallback?: ReactNode;
 }) {
   const icon = resolveIcon(value);
 
   switch (icon.kind) {
+    case "named": {
+      const Glyph = iconByName[icon.name];
+      return (
+        <Glyph
+          size={size}
+          isAnimated={animateOnHover}
+          aria-hidden
+          className={cn("shrink-0", className)}
+        />
+      );
+    }
     case "emoji":
       return (
-        <span role="img" aria-hidden className={cn("leading-none", className)}>
+        <span
+          role="img"
+          aria-hidden
+          style={{ fontSize: size, lineHeight: 1 }}
+          className={cn("inline-flex shrink-0 items-center justify-center", className)}
+        >
           {icon.value}
         </span>
       );
@@ -34,18 +63,9 @@ export function Icon({
           alt=""
           aria-hidden
           loading="lazy"
-          className={cn("h-4 w-4 shrink-0 rounded-[3px] object-contain", className)}
-        />
-      );
-    case "named":
-      // ponytail: placeholder until plan 015's named-icon registry lands.
-      return (
-        <span
-          aria-hidden
-          className={cn(
-            "inline-block h-3.5 w-3.5 shrink-0 rounded-[3px] border border-dashed border-current opacity-50",
-            className,
-          )}
+          width={size}
+          height={size}
+          className={cn("shrink-0 rounded-[3px] object-contain", className)}
         />
       );
     case "none":
