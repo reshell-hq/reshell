@@ -1,4 +1,5 @@
 import type { CanvasWidgetId, SceneName } from "@/lib/config";
+import type { MusicPlayback } from "@/lib/music";
 import type { FocusTask } from "@/lib/tasks";
 import type { TimerState } from "@/lib/timer";
 
@@ -22,4 +23,10 @@ export type OverrideState = {
   activeWorkspaceId?: string;
   /** Per-workspace overrides, keyed by workspace id. */
   workspaces: Record<string, WorkspaceOverride>;
+  /**
+   * Music playback (plan 013). The ONE **global** override slice — NOT keyed by
+   * workspace, so playback survives workspace switches. Absent until the music
+   * tool is first touched; defaults derive from `config.music.stations`.
+   */
+  music?: MusicPlayback;
 };

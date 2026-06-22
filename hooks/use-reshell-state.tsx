@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { validateConfig, type ReshellConfig, type WorkspaceConfig } from "@/lib/config";
+import type { MusicPlayback } from "@/lib/music";
 import {
   getOverrideServerSnapshot,
   getOverrideSnapshot,
@@ -37,6 +38,14 @@ export type ReshellState = {
   setActiveWorkspace: (workspaceId: string) => void;
   patchOverride: (workspaceId: string, patch: Partial<WorkspaceOverride>) => void;
   resetWorkspace: (workspaceId: string) => void;
+  /**
+   * The global music override slice (plan 013), or undefined until first
+   * touched. NOT keyed by workspace — `useMusic` reads this through the
+   * provider and layers config-derived defaults over it.
+   */
+  music?: MusicPlayback;
+  /** Write the global music slice (the only writer is `useMusic`). */
+  setMusic: (next: MusicPlayback) => void;
 };
 
 const ReshellContext = createContext<ReshellState | null>(null);
@@ -94,6 +103,12 @@ export function ReshellProvider({
     writeOverride(resetWorkspaceOverride(getOverrideSnapshot(), workspaceId));
   }, []);
 
+  // Global (not per-workspace) music slice. A discrete write off the animation
+  // path (ADR-0006), through the override store (the sole localStorage owner).
+  const setMusic = useCallback((next: MusicPlayback) => {
+    writeOverride({ ...getOverrideSnapshot(), music: next });
+  }, []);
+
   const config = parsed.config;
   const activeWorkspaceId = config
     ? resolveActiveWorkspaceId(config, override)
@@ -118,6 +133,8 @@ export function ReshellProvider({
     setActiveWorkspace,
     patchOverride,
     resetWorkspace,
+    music: override.music,
+    setMusic,
   };
 
   return <ReshellContext.Provider value={value}>{children}</ReshellContext.Provider>;
