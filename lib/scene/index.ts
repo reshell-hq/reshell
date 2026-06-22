@@ -4,3 +4,4 @@
  * `components/scenes/` (React); this module stays React-free (ADR-0009).
  */
 export type { Scene, SceneProps } from "./types";
+export { visibleWidgets, type WidgetVisibilityState } from "./visibility";
