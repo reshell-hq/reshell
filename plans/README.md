@@ -49,7 +49,7 @@ See `CONTEXT.md` (Personal edition glossary) and `docs/adr/0007`, `docs/adr/0008
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
 | 007 | Config + override foundation | P1 | L | 001–006 | DONE |
-| 008 | Bookmarks on edges | P1 | M | 007 | TODO |
+| 008 | Bookmarks on edges | P1 | M | 007 | DONE |
 | 009 | Workspaces + command center | P1 | M | 007 | TODO |
 | 010 | Command bar | P1 | M | 008, 009 | TODO |
 | 011 | Timer tool | P1 | M | 007 | TODO |
