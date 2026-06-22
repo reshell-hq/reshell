@@ -12,7 +12,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "reshell",
-  description: "Shell chrome with content-driven edge slots",
+  description:
+    "A config-driven personal productivity station built on the reshell primitive",
 };
 
 export default function RootLayout({
