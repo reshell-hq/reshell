@@ -20,12 +20,66 @@ export const reshellConfig = {
       name: "Work",
       scene: "default",
       widgets: { clock: true, welcome: true, quote: true },
+      bookmarks: {
+        left: [
+          {
+            name: "Dev",
+            icon: "🛠️",
+            links: [
+              { url: "https://github.com", title: "GitHub", icon: "🐙" },
+              { url: "https://stackoverflow.com" },
+              { url: "https://developer.mozilla.org", title: "MDN" },
+            ],
+          },
+          {
+            name: "Docs",
+            icon: "📚",
+            links: [
+              { url: "https://nextjs.org/docs", title: "Next.js" },
+              { url: "https://react.dev" },
+              { url: "https://tailwindcss.com" },
+            ],
+          },
+        ],
+        top: [
+          {
+            name: "Mail",
+            icon: "✉️",
+            links: [
+              { url: "https://mail.google.com", title: "Gmail" },
+              { url: "https://calendar.google.com", title: "Calendar" },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "personal",
       name: "Personal",
       scene: "editorial",
       widgets: { clock: true, welcome: true },
+      bookmarks: {
+        left: [
+          {
+            name: "Read",
+            icon: "📖",
+            links: [
+              { url: "https://news.ycombinator.com", title: "Hacker News" },
+              { url: "https://www.reddit.com" },
+            ],
+          },
+        ],
+        bottom: [
+          {
+            name: "Watch",
+            icon: "📺",
+            links: [
+              { url: "https://youtube.com", title: "YouTube" },
+              { url: "https://twitch.tv" },
+            ],
+          },
+        ],
+      },
     },
   ],
 } satisfies ReshellConfig;
