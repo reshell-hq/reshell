@@ -55,7 +55,7 @@ See `CONTEXT.md` (Personal edition glossary) and `docs/adr/0007`, `docs/adr/0008
 | 011 | Timer tool | P1 | M | 007 | DONE |
 | 012 | Tasks tool | P2 | M | 011 | DONE |
 | 013 | Music tool (YouTube) | P2 | M | 007 | DONE |
-| 014 | Scenes + canvas widgets | P1 | L | 011, 012, 013 | TODO |
+| 014 | Scenes + canvas widgets | P1 | L | 011, 012, 013 | DONE |
 | 015 | Icon system + curated animated pack | P2 | M | 008 | TODO |
 | 016 | Modularity & export-surface audit | P1 | M | 007–015 | TODO |
 | 017 | Final quality pass (improve · ponytail-audit · impeccable polish) | P1 | M | 007–016 | TODO |
