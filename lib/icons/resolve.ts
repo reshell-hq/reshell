@@ -1,24 +1,25 @@
 /**
  * The icon-resolver seam (CONTEXT: an `icon` field on bookmarks/groups/stations).
- * Pure, zero React/DOM (ADR-0009) so every tier reuses it. Classifies a raw icon
- * string in priority order: image URL (http/https) → emoji (literal) → named.
+ * Pure, zero React/DOM (ADR-0009) so every tier reuses it. A small, total
+ * function (never throws) that classifies a raw icon string in priority order:
  *
- * Here it fully handles emoji + image; `named` is a placeholder kind until plan
- * 015 fills the curated `@animateicons/react` registry. Consumers render
- * `kind: "named"` as a neutral placeholder for now.
+ *   1. image URL  — cheap `http(s)://` regex        → `{ kind: "image" }`
+ *   2. named      — matches a curated registry key   → `{ kind: "named" }`
+ *   3. emoji/text — anything else (the literal)      → `{ kind: "emoji" }`
+ *
+ * The curated names live in `./names` (pure) so this stays unit-testable in
+ * node without pulling the client pack; `<Icon>` turns the result into pixels.
  */
+
+import { isIconName, type IconName } from "./names";
 
 export type ResolvedIcon =
   | { kind: "image"; src: string }
+  | { kind: "named"; name: IconName }
   | { kind: "emoji"; value: string }
-  | { kind: "named"; name: string }
   | { kind: "none" };
 
 const IMAGE_URL = /^https?:\/\//i;
-// ponytail: a single Extended_Pictographic test is enough to tell a literal
-// emoji from a named key like "github". Upgrade path (plan 015): full grapheme
-// segmentation if multi-codepoint sequences ever need exact handling.
-const EMOJI = /\p{Extended_Pictographic}/u;
 
 export function resolveIcon(value?: string): ResolvedIcon {
   const raw = value?.trim();
@@ -28,8 +29,10 @@ export function resolveIcon(value?: string): ResolvedIcon {
   if (IMAGE_URL.test(raw)) {
     return { kind: "image", src: raw };
   }
-  if (EMOJI.test(raw)) {
-    return { kind: "emoji", value: raw };
+  if (isIconName(raw)) {
+    return { kind: "named", name: raw };
   }
-  return { kind: "named", name: raw };
+  // Fallback: treat any other literal (an emoji, an unknown name, a glyph) as
+  // text. `<Icon>` renders it verbatim in a span, so nothing is ever lost.
+  return { kind: "emoji", value: raw };
 }
