@@ -95,6 +95,25 @@ describe("buildCommandIndex", () => {
     expect(navKinds).toEqual(new Set(["switch", "open"]));
   });
 
+  it("emits a focus verb for each open task and skips completed ones", () => {
+    const index = buildCommandIndex({
+      config,
+      activeWorkspace: work,
+      activeWorkspaceId: "work",
+      tasks: [
+        { id: "t1", title: "Ship", today: true, completed: false, order: 0 },
+        { id: "t2", title: "Done", today: true, completed: true, order: 1 },
+      ],
+    });
+    const focus = index.filter(
+      (e) => e.kind === "task" && e.run.type === "task" && e.run.action === "focus",
+    );
+    expect(focus.map((e) => e.run)).toEqual([
+      { type: "task", action: "focus", taskId: "t1" },
+    ]);
+    expect(focus[0].label).toBe("Focus on Ship");
+  });
+
   it("yields no bookmark entries when the active workspace has none", () => {
     const opens = buildCommandIndex({
       config,

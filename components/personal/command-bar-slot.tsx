@@ -6,6 +6,7 @@ import { useShell } from "@/components/shell/shell-context";
 import { Icon } from "@/components/icon";
 import { useGlobalTypeahead } from "@/hooks/use-global-typeahead";
 import { useReshellState } from "@/hooks/use-reshell-state";
+import { useTasks } from "@/hooks/use-tasks";
 import { useTimer } from "@/hooks/use-timer";
 import {
   buildCommandIndex,
@@ -49,6 +50,7 @@ export function CommandBarSlot() {
   const { config, activeWorkspace, activeWorkspaceId, setActiveWorkspace, patchOverride, resetWorkspace } =
     useReshellState();
   const timer = useTimer();
+  const tasks = useTasks();
   const { closeActive, focusOpen } = useShell();
 
   const [query, setQuery] = useState("");
@@ -66,14 +68,23 @@ export function CommandBarSlot() {
   });
 
   const index = useMemo(
-    () => buildCommandIndex({ config, activeWorkspace, activeWorkspaceId }),
-    [config, activeWorkspace, activeWorkspaceId],
+    () => buildCommandIndex({ config, activeWorkspace, activeWorkspaceId, tasks: tasks.tasks }),
+    [config, activeWorkspace, activeWorkspaceId, tasks.tasks],
   );
 
   const results = useMemo(() => {
     const parsed = parseQuery(query);
     const pool = index.filter((entry) => entry.mode === parsed.mode);
-    return rank(parsed.query, pool).slice(0, MAX_ROWS);
+    const ranked = rank(parsed.query, pool);
+    // Inline "add task" capture: a static verb can't carry free text, so when
+    // the verb query reads like `add buy milk`, surface a live create entry.
+    if (parsed.mode === "verb") {
+      const title = extractNewTaskTitle(parsed.query);
+      if (title) {
+        return [newTaskEntry(title), ...ranked].slice(0, MAX_ROWS);
+      }
+    }
+    return ranked.slice(0, MAX_ROWS);
   }, [index, query]);
 
   // Clamp selection into range whenever the result set shrinks.
@@ -107,9 +118,18 @@ export function CommandBarSlot() {
         }
         break;
       case "task":
+        if (run.action === "add") {
+          const title = extractNewTaskTitle(parseQuery(query).query);
+          if (title) {
+            tasks.addTask(title);
+          }
+        } else {
+          tasks.startFocusOnTask(run.taskId);
+        }
+        break;
       case "music":
-        // ponytail: the tasks/music tools land in plans 012/013; their verbs
-        // are indexed already but dispatch is a no-op until then.
+        // ponytail: the music tool lands in plan 013; its verbs are indexed
+        // already but dispatch is a no-op until then.
         break;
     }
     reset();
@@ -140,6 +160,28 @@ export function CommandBarSlot() {
       </Shell.Slot>
     </Shell.Edge>
   );
+}
+
+// Pull a new-task title out of a verb query like `add buy milk`, `add task buy
+// milk`, or `task buy milk`. Returns null when there's no title to create.
+function extractNewTaskTitle(verbQuery: string): string | null {
+  const match = verbQuery.match(/^add(?:\s+task)?\s+(.+)$|^task\s+(.+)$/i);
+  if (!match) {
+    return null;
+  }
+  return (match[1] ?? match[2]).trim() || null;
+}
+
+/** A live, query-derived "create task" row (its title is re-read on run). */
+function newTaskEntry(title: string): CommandEntry {
+  return {
+    id: "task-add-live",
+    mode: "verb",
+    kind: "task",
+    label: `Add task “${title}”`,
+    keywords: [],
+    run: { type: "task", action: "add" },
+  };
 }
 
 function moveSelection(current: number, direction: "up" | "down", count: number): number {

@@ -4,6 +4,7 @@ import { Shell } from "@/components/shell";
 import {
   CommandBarSlot,
   CommandCenterSlot,
+  TasksSlot,
   TimerSlot,
   WorkspaceEdges,
 } from "@/components/personal";
@@ -35,6 +36,7 @@ function HomeStation() {
       <CommandCenterSlot />
       <CommandBarSlot />
       <TimerSlot />
+      <TasksSlot />
       <WorkspaceEdges />
       <Shell.Content>
         <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">

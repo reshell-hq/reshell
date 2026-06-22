@@ -5,6 +5,7 @@ import {
   type SceneName,
   type WorkspaceConfig,
 } from "@/lib/config";
+import type { FocusTask } from "@/lib/tasks";
 
 /**
  * Builds the command-bar index (CONTEXT: "Command bar") from the read-only
@@ -35,6 +36,7 @@ export type RunDescriptor =
   | { type: "reset"; workspaceId: string }
   | { type: "timer"; action: "start" | "stop" }
   | { type: "task"; action: "add" }
+  | { type: "task"; action: "focus"; taskId: string }
   | { type: "music"; action: "play" | "pause" };
 
 export type CommandKind = RunDescriptor["type"];
@@ -56,17 +58,20 @@ export type CommandIndexInput = {
   config: ReshellConfig;
   activeWorkspace: WorkspaceConfig;
   activeWorkspaceId: string;
+  /** Effective tasks (override) so `focus on …` can target one. Defaults to []. */
+  tasks?: FocusTask[];
 };
 
 export function buildCommandIndex({
   config,
   activeWorkspace,
   activeWorkspaceId,
+  tasks = [],
 }: CommandIndexInput): CommandEntry[] {
   return [
     ...workspaceEntries(config),
     ...bookmarkEntries(activeWorkspace),
-    ...verbEntries(activeWorkspaceId),
+    ...verbEntries(activeWorkspaceId, tasks),
   ];
 }
 
@@ -113,7 +118,10 @@ function bookmarkEntries(workspace: WorkspaceConfig): CommandEntry[] {
   return entries;
 }
 
-function verbEntries(activeWorkspaceId: string): CommandEntry[] {
+function verbEntries(
+  activeWorkspaceId: string,
+  tasks: FocusTask[],
+): CommandEntry[] {
   const sceneVerbs: CommandEntry[] = SCENE_NAMES.map((scene) => ({
     id: `scene:${scene}`,
     mode: "verb",
@@ -123,9 +131,10 @@ function verbEntries(activeWorkspaceId: string): CommandEntry[] {
     run: { type: "scene", scene },
   }));
 
-  // ponytail: timer/task/music verbs are declared here so the command bar is
-  // complete, but `runCommand` no-ops them until plans 011/012/013 land the
-  // tools. Adding a verb = an entry here + a `runCommand` case.
+  // The timer (011) and tasks (012) verbs dispatch for real in `runCommand`;
+  // music stays a no-op stub until plan 013. Adding a verb = an entry here + a
+  // `runCommand` case. `task-add` carries no title — the bar reads the typed
+  // remainder (e.g. ":add buy milk"); `focus on …` targets a specific task.
   const toolVerbs: CommandEntry[] = [
     verb("timer-start", "timer", "Start timer", ["timer", "start", "pomodoro"], {
       type: "timer",
@@ -149,6 +158,18 @@ function verbEntries(activeWorkspaceId: string): CommandEntry[] {
     }),
   ];
 
+  const focusVerbs: CommandEntry[] = tasks
+    .filter((task) => !task.completed)
+    .map((task) =>
+      verb(
+        `task-focus:${task.id}`,
+        "task",
+        `Focus on ${task.title}`,
+        [task.title, "focus", "task"],
+        { type: "task", action: "focus", taskId: task.id },
+      ),
+    );
+
   const resetVerb: CommandEntry = {
     id: "reset",
     mode: "verb",
@@ -158,7 +179,7 @@ function verbEntries(activeWorkspaceId: string): CommandEntry[] {
     run: { type: "reset", workspaceId: activeWorkspaceId },
   };
 
-  return [...sceneVerbs, ...toolVerbs, resetVerb];
+  return [...sceneVerbs, ...toolVerbs, ...focusVerbs, resetVerb];
 }
 
 function verb(

@@ -54,6 +54,8 @@ export type UseTimer = {
   setSplit: (splitId: string) => void;
   setCountdownMinutes: (minutes: number) => void;
   toggleChime: () => void;
+  /** Apply a plan-012 task→timer patch (see `lib/tasks/timer-link`). */
+  applyTaskTimer: (patch: Partial<TimerState>) => void;
 };
 
 /**
@@ -153,6 +155,23 @@ export function useTimer(): UseTimer {
     [state, writeTimer],
   );
 
+  // Merge a task→timer patch in a single discrete write. A countdown patch (a
+  // task estimate) launches immediately with a fresh clock so "Start estimate"
+  // runs; a pomodoro focus patch only arms — the user presses Start. Keeping it
+  // one write avoids chaining stale-closure setters (`start` closes over the
+  // pre-patch `state`); the lib stays clock-free (ADR-0009).
+  const applyTaskTimer = useCallback(
+    (patch: Partial<TimerState>) => {
+      const next = { ...state, ...patch };
+      writeTimer(
+        next.mode === "countdown" && next.countdownMinutes != null
+          ? startCountdown(next, next.countdownMinutes, new Date())
+          : next,
+      );
+    },
+    [state, writeTimer],
+  );
+
   return {
     state,
     remaining: displaySeconds(state, split, now),
@@ -165,5 +184,6 @@ export function useTimer(): UseTimer {
     setSplit,
     setCountdownMinutes,
     toggleChime,
+    applyTaskTimer,
   };
 }
