@@ -1,0 +1,22 @@
+/* Colocated icon styling (ADR-0009: keyframes/complex selectors live next to
+   the component, never in globals.css). A subtle, intentional hover lift for
+   named glyphs — consistent with the shell's short, eased motion (DESIGN.md). */
+
+.animated {
+  transition: transform 180ms ease-out;
+  transform-origin: center;
+}
+
+.animated:hover {
+  transform: scale(1.15) rotate(-4deg);
+}
+
+/* Never animate under reduced motion (DESIGN.md: honoured globally, restated
+   here so the component is correct on its own, independent of globals.css). */
+@media (prefers-reduced-motion: reduce) {
+  .animated,
+  .animated:hover {
+    transition: none;
+    transform: none;
+  }
+}

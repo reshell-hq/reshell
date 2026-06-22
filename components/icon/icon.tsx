@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { iconByName, resolveIcon } from "@/lib/icons";
+import styles from "./icon.module.css";
 
 /**
  * The single render path for an `icon` field (CONTEXT): it resolves the raw
- * string and draws the matching kind — a curated animated pack glyph (named),
+ * string and draws the matching kind — a curated `lucide-react` glyph (named),
  * an emoji/literal (span), or a remote image (`<img>`). Standalone and
  * app-decoupled (ADR-0009) so the paid tiers reuse it.
  *
  * `size` (px) drives every kind uniformly so a call site sizes the box once;
- * `className` is for colour/layout. Named glyphs inherit `currentColor` and
- * animate on hover (the pack honours `prefers-reduced-motion` itself — its
- * hover trigger is gated on `useReducedMotion`); pass `animateOnHover={false}`
- * to render them static.
+ * `className` is for colour/layout. Named glyphs inherit `currentColor` and,
+ * when `animateOnHover` is set, get a subtle hover lift from the colocated CSS
+ * module — disabled under `prefers-reduced-motion`.
  */
 export function Icon({
   value,
@@ -25,7 +25,7 @@ export function Icon({
   /** Box size in px; sizes the named SVG, the image, and the emoji alike. */
   size?: number;
   className?: string;
-  /** Named glyphs only: animate on hover (ignored under reduced motion). */
+  /** Named glyphs only: animate on hover (no-op under reduced motion). */
   animateOnHover?: boolean;
   /** Rendered when `value` resolves to nothing (e.g. a group with no icon). */
   fallback?: ReactNode;
@@ -38,9 +38,8 @@ export function Icon({
       return (
         <Glyph
           size={size}
-          isAnimated={animateOnHover}
           aria-hidden
-          className={cn("shrink-0", className)}
+          className={cn("shrink-0", animateOnHover && styles.animated, className)}
         />
       );
     }
